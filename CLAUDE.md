@@ -1,16 +1,74 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status
+## Role in Global Architecture
 
-This is a **staging repository** for public release. The active development happens in [semops-hub-pr](https://github.com/timjmitchell/semops-hub-pr).
+**Role:** Schema/Infrastructure (Model Owner)
 
-## Bounded Context
+```
+semops-core [SCHEMA/INFRASTRUCTURE]
+        │
+        ├── Owns: Model (what we know)
+        │   - Global DDD schema (Pattern as aggregate root)
+        │   - UBIQUITOUS_LANGUAGE.md definitions
+        │   - Knowledge graph and patterns
+        │   - RAG pipeline infrastructure
+        │
+        └── Coordinates with: semops-dx-orchestrator [PLATFORM/DX]
+            - Owns: Process (how we work)
+            - Global architecture, cross-repo coordination
+```
 
-**Knowledge Lab** - Schema owner and infrastructure provider.
+**Key Ownership Boundary:**
 
-## Role
+- This repo owns **model** - schema definitions, domain patterns, knowledge graph
+- `semops-dx-orchestrator` owns **process** - workflow documentation, global architecture docs
 
-- Owns: Model (what we know), global schema, knowledge graph, RAG pipeline
-- Coordinates with: semops-dx-orchestrator (owns process/tooling)
+## Core Schema Foundation
+
+This project implements a **Domain-Driven Design (DDD) schema** based on W3C standards:
+
+- **[schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md)** - Canonical definitions of Pattern, Entity, Edge, Surface, Delivery
+- **[schemas/phase2-schema.sql](schemas/phase2-schema.sql)** - PostgreSQL schema with SKOS and PROV-O support
+- **[schemas/SCHEMA_CHANGELOG.md](schemas/SCHEMA_CHANGELOG.md)** - Schema evolution history
+
+**Schema changes are high-impact** and affect all connected SemOps repositories. Always review the ubiquitous language before modifying schemas.
+
+## Development Environment
+
+**Services Stack:**
+- **Supabase** (PostgreSQL + PostgREST + Auth + Storage + Studio)
+- **pgvector** for RAG embeddings
+- **Docling** (document processing)
+- **Neo4j** (graph database)
+- **Qdrant** (vector storage)
+- **n8n** (workflow automation)
+- **Ollama** (local LLM/embeddings)
+
+**Starting Services:**
+```bash
+python start_services.py --skip-clone
+```
+
+**Service URLs:**
+- Supabase Studio: http://localhost:8000
+- n8n: http://localhost:5678
+- Qdrant: http://localhost:6333
+- Neo4j Browser: http://localhost:7474
+
+## Key Files
+
+- [schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md) - Domain term definitions
+- [schemas/phase2-schema.sql](schemas/phase2-schema.sql) - Current schema
+- [docs/SYSTEM_CONTEXT.md](docs/SYSTEM_CONTEXT.md) - Design philosophy
+- [docker-compose.yml](docker-compose.yml) - Infrastructure stack
+- [docs/decisions/](docs/decisions/) - Architecture Decision Records
+
+## Before Schema Changes
+
+1. Read [schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md)
+2. Review [schemas/phase2-schema.sql](schemas/phase2-schema.sql)
+3. Create GitHub issue for discussion
+4. Update SCHEMA_CHANGELOG.md with changes
+5. Consider impact on connected repositories
