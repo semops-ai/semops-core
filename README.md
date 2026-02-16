@@ -73,15 +73,17 @@ See [schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md) for complet
 
 All services run via Docker Compose:
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| **Supabase Studio** | 8000 | Database UI, API management |
-| **PostgreSQL** | 5432 | Primary database (via Supabase) |
-| **Neo4j** | 7474, 7687 | Graph database for patterns |
-| **Qdrant** | 6333, 6334 | Vector database for RAG |
-| **n8n** | 5678 | Workflow automation |
-| **Docling** | 5001 | Document processing (PDF, DOCX) |
-| **Ollama** | 11434 | Local LLM/embeddings |
+| Service | Purpose |
+|---------|---------|
+| **Supabase Studio** | Database UI, API management |
+| **PostgreSQL** | Primary database (via Supabase) |
+| **Neo4j** | Graph database for patterns |
+| **Qdrant** | Vector database for RAG |
+| **n8n** | Workflow automation |
+| **Docling** | Document processing (PDF, DOCX) |
+| **Ollama** | Local LLM/embeddings |
+
+See [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) for service details, health checks, and configuration.
 
 ## Quick Start
 
@@ -102,18 +104,29 @@ source venv/bin/activate
 python scripts/init_schema.py
 ```
 
-**Service URLs:**
-- Supabase Studio: http://localhost:8000
-- n8n: http://localhost:5678
-- Qdrant: http://localhost:6333
-- Neo4j Browser: http://localhost:7474
+**Service URLs:** Configure per your environment after starting Docker Compose.
 
 ## Documentation
 
-- [docs/SYSTEM_CONTEXT.md](docs/SYSTEM_CONTEXT.md) - Design philosophy and thesis
-- [schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md) - Domain terms
-- [schemas/phase2-schema.sql](schemas/phase2-schema.sql) - Current schema
-- [docs/decisions/](docs/decisions/) - Architecture Decision Records
+### Architecture
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture and retrieval pipeline
+- [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) - Services stack and configuration
+- [docs/STRATEGIC_DDD.md](docs/STRATEGIC_DDD.md) - Capability registry and domain patterns
+- [docs/domain-patterns/](docs/domain-patterns/) - Reusable semantic patterns
+
+### Schema
+
+- [schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md) - Domain term definitions
+- [schemas/SCHEMA_REFERENCE.md](schemas/SCHEMA_REFERENCE.md) - Column specs, JSONB schemas, constraints
+- [schemas/SCHEMA_CHANGELOG.md](schemas/SCHEMA_CHANGELOG.md) - Schema evolution history
+- [schemas/SKOS_PROVO_MAPPING.md](schemas/SKOS_PROVO_MAPPING.md) - W3C standards mapping
+- [schemas/phase2-schema.sql](schemas/phase2-schema.sql) - Current schema DDL
+
+### Guides
+
+- [docs/SEARCH_GUIDE.md](docs/SEARCH_GUIDE.md) - Query capabilities and search patterns
+- [docs/INGESTION_GUIDE.md](docs/INGESTION_GUIDE.md) - Ingestion pipeline and source configuration
 
 ## W3C Standards
 

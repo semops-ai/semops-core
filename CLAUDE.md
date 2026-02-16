@@ -51,19 +51,17 @@ This project implements a **Domain-Driven Design (DDD) schema** based on W3C sta
 python start_services.py --skip-clone
 ```
 
-**Service URLs:**
-- Supabase Studio: http://localhost:8000
-- n8n: http://localhost:5678
-- Qdrant: http://localhost:6333
-- Neo4j Browser: http://localhost:7474
+**Service URLs:** Configure per your environment. See [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) for service descriptions.
 
 ## Key Files
 
 - [schemas/UBIQUITOUS_LANGUAGE.md](schemas/UBIQUITOUS_LANGUAGE.md) - Domain term definitions
 - [schemas/phase2-schema.sql](schemas/phase2-schema.sql) - Current schema
-- [docs/SYSTEM_CONTEXT.md](docs/SYSTEM_CONTEXT.md) - Design philosophy
+- [schemas/SCHEMA_REFERENCE.md](schemas/SCHEMA_REFERENCE.md) - Column specs, JSONB schemas, constraints
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System architecture and retrieval pipeline
+- [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) - Services stack and configuration
+- [docs/STRATEGIC_DDD.md](docs/STRATEGIC_DDD.md) - Capability registry and domain patterns
 - [docker-compose.yml](docker-compose.yml) - Infrastructure stack
-- [docs/decisions/](docs/decisions/) - Architecture Decision Records
 
 ## Before Schema Changes
 
