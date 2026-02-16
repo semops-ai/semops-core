@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://projectike.dev/schemas/attribution_v2.json",
+  "title": "Attribution V2",
+  "description": "Authorship, sources, provenance, and epistemic classification. Dublin Core-aligned with custom extensions for AI attribution and knowledge claim tracking.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "attribution_v2",
+      "description": "Schema version identifier"
+    },
+    "creator": {
+      "type": "array",
+      "description": "Primary creators/authors with intellectual property ownership (Dublin Core: dc:creator)",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["John Doe", "Jane Smith"]]
+    },
+    "contributor": {
+      "type": "array",
+      "description": "Secondary contributors who assisted but don't hold primary IP (Dublin Core: dc:contributor)",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["Editor Name", "Reviewer Name"]]
+    },
+    "publisher": {
+      "type": "string",
+      "description": "Entity responsible for making the resource available - e.g., conference channel, journal, platform account (Dublin Core: dc:publisher). Distinct from organization.",
+      "examples": ["DDD Europe", "O'Reilly Media", "Nature Publishing", "Lex Fridman Podcast"]
+    },
+    "rights": {
+      "type": "string",
+      "description": "License or rights statement (Dublin Core: dc:rights)",
+      "examples": ["MIT", "Apache-2.0", "CC-BY-4.0", "All Rights Reserved", "© 2024 John Doe"]
+    },
+    "organization": {
+      "type": "string",
+      "description": "Institutional affiliation of the creator - e.g., speaker's employer, author's university (custom extension). Distinct from publisher.",
+      "examples": ["Google Brain", "ThoughtWorks", "MIT", "Anthropic"]
+    },
+    "platform": {
+      "type": "string",
+      "description": "Platform where content was published",
+      "examples": ["youtube", "github", "arxiv", "medium", "wordpress"]
+    },
+    "channel": {
+      "type": "string",
+      "description": "Channel/account name on the platform",
+      "examples": ["AI Explained", "user123"]
+    },
+    "original_source": {
+      "type": "string",
+      "format": "uri",
+      "description": "Original URL where content was published (Dublin Core: dc:source)",
+      "examples": ["https://arxiv.org/abs/1706.03762"]
+    },
+    "source_reference": {
+      "type": "string",
+      "description": "Bibliographic reference for 3P content without formal authorship (custom extension)",
+      "examples": ["Ackoff (1989)", "Wikipedia contributors"]
+    },
+    "agents": {
+      "type": "array",
+      "description": "AI agents or tools used in creation (custom extension for AI attribution)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the AI agent or tool",
+            "examples": ["GPT-4", "Claude", "n8n", "youtube-dl"]
+          },
+          "role": {
+            "type": "string",
+            "description": "Role the agent played in content creation",
+            "examples": ["writer", "editor", "transcriber", "translator", "summarizer", "draft_assistance"]
+          },
+          "version": {
+            "type": "string",
+            "description": "Version identifier of the agent",
+            "examples": ["gpt-4-0613", "claude-3-opus-20240229"]
+          }
+        },
+        "required": ["name", "role"]
+      }
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the original content was published (Dublin Core: dc:date)"
+    },
+    "epistemic_status": {
+      "type": "string",
+      "description": "Type of knowledge claim this content represents (custom extension for epistemic tracking)",
+      "enum": ["fact", "synthesis", "hypothesis"],
+      "examples": ["fact", "synthesis", "hypothesis"]
+    },
+    "concept_ownership": {
+      "type": "string",
+      "description": "Who owns/coined the CONCEPT being documented, not the artifact (custom extension)",
+      "enum": ["1p", "2p", "3p"],
+      "examples": ["1p", "3p"]
+    }
+  },
+  "additionalProperties": false
+}

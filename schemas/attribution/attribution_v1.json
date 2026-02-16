@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://projectike.dev/schemas/attribution_v1.json",
+  "title": "Attribution V1",
+  "description": "Authorship, sources, and provenance details",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "attribution_v1",
+      "description": "Schema version identifier"
+    },
+    "authors": {
+      "type": "array",
+      "description": "List of authors/creators",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["John Doe", "Jane Smith"]]
+    },
+    "organization": {
+      "type": "string",
+      "description": "Organization/institution that produced the content",
+      "examples": ["Google Brain", "OpenAI", "MIT"]
+    },
+    "platform": {
+      "type": "string",
+      "description": "Platform where content was published",
+      "examples": ["youtube", "github", "arxiv", "medium", "wordpress"]
+    },
+    "channel": {
+      "type": "string",
+      "description": "Channel/account name on the platform",
+      "examples": ["AI Explained", "user123"]
+    },
+    "original_source": {
+      "type": "string",
+      "format": "uri",
+      "description": "Original URL where content was published",
+      "examples": ["https://arxiv.org/abs/1706.03762"]
+    },
+    "license": {
+      "type": "string",
+      "description": "Content license",
+      "examples": ["MIT", "Apache-2.0", "CC-BY-4.0", "All Rights Reserved"]
+    },
+    "copyright": {
+      "type": "string",
+      "description": "Copyright notice",
+      "examples": ["© 2024 John Doe"]
+    },
+    "agents": {
+      "type": "array",
+      "description": "AI agents or tools used in creation",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "examples": ["GPT-4", "Claude", "n8n"]
+          },
+          "role": {
+            "type": "string",
+            "examples": ["writer", "editor", "transcriber", "translator"]
+          },
+          "version": {
+            "type": "string",
+            "examples": ["gpt-4-0613", "claude-3-opus-20240229"]
+          }
+        }
+      }
+    },
+    "derived_from": {
+      "type": "array",
+      "description": "Source entities this was derived from (for provenance='derived')",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["youtube-video-abc123", "transcript-xyz789"]]
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the original content was published"
+    }
+  }
+}

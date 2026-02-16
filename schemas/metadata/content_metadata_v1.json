@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://projectike.dev/schemas/content_metadata_v1.json",
+  "title": "Content Metadata V1 (W3C SKOS-based)",
+  "description": "Semantic content metadata based on W3C SKOS (Simple Knowledge Organization System). SKOS properties describe concept hierarchies, labels, and definitions WITHIN entities. For relationships BETWEEN entities, use Edge predicates (W3C PROV-O based).",
+  "type": "object",
+  "required": ["content_type"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "content_metadata_v1",
+      "description": "Schema version identifier"
+    },
+
+    "content_type": {
+      "type": "string",
+      "description": "What is this? The purpose/role of the content. Platform is in filespec.platform, format is in media_type.",
+      "examples": [
+        "article", "paper", "book", "presentation", "tutorial", "guide",
+        "transcript", "summary", "quote", "clip", "translation",
+        "definition", "glossary_entry", "documentation",
+        "pattern", "framework", "methodology", "principle"
+      ]
+    },
+
+    "preferred_label": {
+      "type": "string",
+      "description": "Preferred human-readable label (skos:prefLabel)",
+      "examples": ["Semantic Coherence", "DIKW Framework"]
+    },
+
+    "alt_labels": {
+      "type": "array",
+      "description": "Alternative labels and synonyms (skos:altLabel)",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["SemCo", "Coherence"], ["Data-Information-Knowledge-Wisdom"]]
+    },
+
+    "definition": {
+      "type": "string",
+      "description": "Formal definition of the concept (skos:definition)",
+      "examples": ["The degree of shared meaning and mutual understanding within a semantic context"]
+    },
+
+    "broader_concepts": {
+      "type": "array",
+      "description": "More general/parent concepts (skos:broader). Use entity_id slugs.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "examples": [["semantic-operations", "knowledge-management"]]
+    },
+
+    "narrower_concepts": {
+      "type": "array",
+      "description": "More specific/child concepts (skos:narrower). Use entity_id slugs.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "examples": [["semantic-drift", "coherence-audit", "semantic-entropy"]]
+    },
+
+    "related_concepts": {
+      "type": "array",
+      "description": "Associatively related concepts (skos:related). Use entity_id slugs.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "examples": [["knowledge-graphs", "domain-driven-design", "ontology-engineering"]]
+    },
+
+    "scope_note": {
+      "type": "string",
+      "description": "Usage context and scope (skos:scopeNote)",
+      "examples": ["Use this concept when analyzing shared understanding in distributed teams"]
+    },
+
+    "example": {
+      "type": "string",
+      "description": "Example usage of the concept (skos:example)",
+      "examples": ["A team using the same term 'customer' but meaning different things demonstrates low semantic coherence"]
+    },
+
+    "history_note": {
+      "type": "string",
+      "description": "Historical context and evolution (skos:historyNote)",
+      "examples": ["First introduced in 2024 to describe AI transformation challenges"]
+    },
+
+    "primary_concept": {
+      "type": "string",
+      "description": "Main concept this content addresses (entity_id reference). Like dc:subject.",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "examples": ["semantic-coherence", "dikw-framework"]
+    },
+
+    "domain": {
+      "type": "string",
+      "description": "Subject domain or discipline",
+      "examples": ["knowledge-management", "AI/ML", "software-engineering", "philosophy"]
+    },
+
+    "abstraction_level": {
+      "type": "string",
+      "description": "Conceptual depth and prerequisite knowledge required",
+      "enum": ["foundational", "intermediate", "advanced"],
+      "examples": ["intermediate"]
+    },
+
+    "semantic_roles": {
+      "type": "array",
+      "description": "Functional roles this content plays (SemOps extension)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "analogy",
+          "example",
+          "synthesis",
+          "critique",
+          "tutorial",
+          "reference",
+          "case-study"
+        ]
+      },
+      "examples": [["analogy", "tutorial"], ["synthesis", "reference"]]
+    },
+
+    "media_type": {
+      "type": "string",
+      "description": "Broad media category (minimal physical characteristic)",
+      "enum": ["text", "video", "audio", "image", "data", "code"],
+      "examples": ["text", "video"]
+    },
+
+    "language": {
+      "type": "string",
+      "description": "Primary language (ISO 639-1 code)",
+      "pattern": "^[a-z]{2}$",
+      "examples": ["en", "es", "fr", "de"]
+    },
+
+    "tags": {
+      "type": "array",
+      "description": "Freeform tags for categorization",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["AI", "machine-learning", "transformers"]]
+    },
+
+    "subject_area": {
+      "type": "array",
+      "description": "Subject areas or domains (broader than tags)",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["AI/ML", "NLP", "Computer Science"]]
+    },
+
+    "summary": {
+      "type": "string",
+      "description": "Brief summary or abstract"
+    },
+
+    "word_count": {
+      "type": "integer",
+      "description": "Word count (for text content)",
+      "minimum": 0
+    },
+
+    "reading_time_minutes": {
+      "type": "integer",
+      "description": "Estimated reading time in minutes",
+      "minimum": 0
+    },
+
+    "duration_seconds": {
+      "type": "integer",
+      "description": "Duration in seconds (for video/audio)",
+      "minimum": 0
+    },
+
+    "quality_score": {
+      "type": "number",
+      "description": "Quality/relevance score (0.0-1.0)",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}
