@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS ingestion_run (
   run_type TEXT NOT NULL
     CHECK (run_type IN ('manual', 'scheduled', 'agent')),
   agent_name TEXT,                                  -- e.g., 'ingest_from_source', 'research_synthesizer'
-  source_name TEXT,                                 -- config source name (e.g., 'project-ike-private')
+  source_name TEXT,                                 -- config source name (e.g., 'my-source')
   started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   completed_at TIMESTAMPTZ,
   status TEXT NOT NULL DEFAULT 'running'

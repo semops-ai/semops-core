@@ -1,0 +1,56 @@
+[project]
+name = "semops-core"
+version = "0.1.0"
+description = "Schema owner and infrastructure provider for SemOps"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Database
+    "psycopg[binary]>=3.3",
+    "psycopg2-binary>=2.9",
+    "sqlalchemy>=2.0",
+    # API & MCP
+    "fastapi>=0.128",
+    "uvicorn>=0.40",
+    "mcp>=1.26",
+    "sse-starlette>=3.0",
+    "python-multipart>=0.0.22",
+    # AI/LLM
+    "openai>=2.0",
+    "anthropic>=0.77",
+    # Graph
+    "neo4j>=6.0",
+    # Data validation & settings
+    "pydantic>=2.5",
+    "pydantic-settings>=2.0",
+    "python-dotenv>=1.0",
+    # HTTP
+    "requests>=2.31",
+    "httpx>=0.25",
+    # Data formats
+    "pyyaml>=6.0",
+    # CLI & UI
+    "click>=8.1",
+    "rich>=13.7",
+    "tqdm>=4.60",
+    # Utilities
+    "ulid-py>=1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1",
+    "pytest>=7.4",
+    "mypy>=1.7",
+    "ipython>=8.18",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+# Install gh CLI
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    pydantic \
+    pydantic-settings \
+    "psycopg[binary]" \
+    anthropic \
+    openai \
+    rich \
+    pyyaml
+
+# Copy scripts and config
+COPY scripts/ /app/scripts/
+COPY config/ /app/config/
+
+WORKDIR /app/scripts
+
+ENTRYPOINT ["python", "ingest_from_source.py"]
