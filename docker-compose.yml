@@ -1,0 +1,162 @@
+# SemOps (Semantic Operations) - Docker Compose
+# Based on local-ai-packaged structure
+#
+# Services included:
+# - Supabase stack (PostgreSQL, PostgREST, Auth, Storage, Studio, etc.)
+# - n8n for prototype workflow automation
+# - Qdrant for vector storage (RAG)
+#
+# Usage:
+#   docker compose up -d
+#   OR use the startup script:
+#   python scripts/start.py
+
+# Include Supabase stack
+include:
+  - ./supabase/docker/docker-compose.yml
+
+volumes:
+  n8n_storage:
+  qdrant_storage:
+  docling_cache:
+  neo4j_data:
+  neo4j_logs:
+
+# n8n service template
+x-n8n: &service-n8n
+  image: n8nio/n8n:latest
+  environment:
+    # Database connection (using Supabase PostgreSQL)
+    - DB_TYPE=postgresdb
+    - DB_POSTGRESDB_HOST=db
+    - DB_POSTGRESDB_USER=postgres
+    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+    - DB_POSTGRESDB_DATABASE=postgres
+
+    # n8n configuration
+    - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
+    - N8N_DIAGNOSTICS_ENABLED=false
+    - N8N_PERSONALIZATION_ENABLED=false
+    - WEBHOOK_URL=http://localhost:5678
+
+    # Timezone
+    - GENERIC_TIMEZONE=America/New_York
+    - TZ=America/New_York
+
+services:
+  # n8n-import - Import workflows on startup
+  n8n-import:
+    <<: *service-n8n
+    container_name: semops-n8n-import
+    entrypoint: /bin/sh
+    command:
+      - "-c"
+      - "n8n import:credentials --separate --input=/backup/credentials && n8n import:workflow --separate --input=/backup/workflows"
+    volumes:
+      - ./n8n/backup:/backup
+    depends_on:
+      - db
+
+  # n8n - Workflow Automation
+  n8n:
+    <<: *service-n8n
+    container_name: semops-n8n
+    restart: unless-stopped
+    expose:
+      - 5678/tcp
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - n8n_storage:/home/node/.n8n
+      - ./n8n/backup:/backup
+      - ./data:/data/shared  # Shared data directory for file operations
+    depends_on:
+      n8n-import:
+        condition: service_completed_successfully
+
+  # Qdrant - Vector Database for RAG
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: semops-qdrant
+    restart: unless-stopped
+    expose:
+      - 6333/tcp
+      - 6334/tcp
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  # Docling - Document Processing for RAG
+  # Converts PDFs, DOCX, PPTX, etc. to structured text
+  docling:
+    image: quay.io/docling-project/docling-serve:latest
+    container_name: semops-docling
+    restart: unless-stopped
+    environment:
+      - DOCLING_SERVE_ENABLE_UI=1
+    expose:
+      - 5001/tcp
+    ports:
+      - "127.0.0.1:5001:5001"
+    volumes:
+      - docling_cache:/root/.cache/docling
+      - ./data:/data  # Shared data directory for document processing
+
+  # Neo4j - Graph Database for Concept Graph
+  # Used for graph-based classification: orphan detection, hierarchy validation,
+  # community detection, PageRank-style importance scoring
+  neo4j:
+    image: neo4j:5-community
+    container_name: semops-neo4j
+    restart: unless-stopped
+    environment:
+      # Disable auth for local dev (set NEO4J_AUTH=neo4j/password for production)
+      - NEO4J_AUTH=none
+      # Enable APOC and GDS plugins
+      - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+      # Memory settings for dev
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_memory_pagecache_size=512m
+    expose:
+      - 7474/tcp  # HTTP
+      - 7687/tcp  # Bolt
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+# Note: Supabase services are auto-included from ./supabase/docker/docker-compose.yml
+# This includes:
+#   - db (PostgreSQL) - accessible internally via 'db', exposed on localhost:5432
+#   - kong (API Gateway) - port 8000 (Supabase Studio & API)
+#   - auth (GoTrue) - authentication service
+#   - rest (PostgREST) - REST API for PostgreSQL
+#   - realtime - real-time subscriptions
+#   - storage - file storage service
+#   - imgproxy - image transformation
+#   - meta - database migrations
+#   - functions - edge functions
+#   - analytics - usage analytics
+#   - vector (pgvector) - vector similarity search
+#   - pooler (Supavisor) - connection pooling
+#
+# All services share the same Docker network and can communicate via service names.
+#
+# Service URLs:
+#   - Supabase Studio: http://localhost:8000
+#   - n8n: http://localhost:5678
+#   - Qdrant: http://localhost:6333
+#   - Docling: http://localhost:5001
+#   - Neo4j Browser: http://localhost:7474
+#   - Neo4j Bolt: bolt://localhost:7687
