@@ -13,7 +13,7 @@ The core thesis: **Shared semantic context enables better human+AI collaboration
 
 SemOps implements three key hypotheses:
 - **Strategic Data** - Data as strategic asset and AI accelerator
-- **Symbiotic Architecture** - Applied DDD at organizational scale
+- **Explicit Architecture** - Applied DDD at organizational scale
 - **Semantic Optimization** - Measuring and maintaining meaning as operational infrastructure
 
 ## This Repository

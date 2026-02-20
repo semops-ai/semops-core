@@ -2,33 +2,63 @@
 
 > **Repo:** `semops-core`
 > **Role:** Schema/Infrastructure — Schema owner, knowledge base, and retrieval services for SemOps
-> **Version:** 3.0.0
-> **Last Updated:** 2026-02-13
-> **Related:** [INFRASTRUCTURE.md](INFRASTRUCTURE.md) (services), [SEARCH_GUIDE.md](SEARCH_GUIDE.md) (usage), [INGESTION_GUIDE.md](INGESTION_GUIDE.md) (ingestion)
+> **Status:** ACTIVE
+> **Version:** 3.2.0
+> **Last Updated:** 2026-02-19
+> **Infrastructure:** [INFRASTRUCTURE.md](INFRASTRUCTURE.md)
+> **Related:** [SEARCH_GUIDE.md](SEARCH_GUIDE.md) (usage), [USER_GUIDE.md](USER_GUIDE.md) (ingestion)
 
----
+## Role
 
-## What This Repo Does
+This repo owns two things: the **domain model** (Pattern + Coherence as co-equal core aggregates, entity schema) and the **retrieval pipeline** (how content becomes searchable knowledge). The retrieval pipeline is the core architecture — it determines what agents across all repos can find and how precisely they can find it.
 
-This repo owns two things: the **domain model** (Pattern as aggregate root, entity schema) and the **retrieval pipeline** (how content becomes searchable knowledge). The retrieval pipeline is the core architecture — it determines what agents across all repos can find and how precisely they can find it.
+**Key distinction:** This repo owns *model* (what we know) and *infrastructure* (services), while `semops-dx-orchestrator` owns *process* (how we work).
 
-```
-Source repos          semops-core                        Consumers
-(semops-docs,     ┌─────────────────────────────────┐
- semops-publisher, │                                 │    CLI
- semops-dx-        │   Ingestion                     │    (semantic_search.py)
- orchestrator)     │   ├── Entity + metadata          │
-     │            │   ├── Chunks + content           │    Query API
-     │  GitHub    │   ├── Embeddings (OpenAI)        │
-     └──────────► │   └── Graph edges (Neo4j)        │
-        fetch     │                                 │    MCP Server
-                  │   Retrieval                     │    (cross-repo agents)
-                  │   ├── Entity search (topics)     │───►  semops-publisher
-                  │   ├── Chunk search (passages)    │───►  semops-data
-                  │   └── Hybrid search (both)       │───►  semops-dx-orchestrator
-                  │                                 │───►  semops-docs
-                  └─────────────────────────────────┘
-```
+## DDD Classification
+
+> Source: [REPOS.yaml](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/REPOS.yaml)
+
+| Property | Value |
+| --- | --- |
+| **Layer** | `semops-core` |
+| **Context Type** | `core` |
+| **Integration Patterns** | `shared-kernel` |
+| **Subdomains** | `semantic-operations`, `knowledge-management` |
+
+## Capabilities
+
+> Source: [STRATEGIC_DDD.md](STRATEGIC_DDD.md) (authoritative capability registry)
+
+| Capability | Description |
+| --- | --- |
+| Domain Data Model | Pattern schema, SKOS taxonomy, entity/edge tables, strategic views |
+| Internal Knowledge Access | Semantic search (entity, chunk, hybrid), MCP server, Query API |
+| Ingestion Pipeline | Source-based ingestion with LLM classification, chunking, embedding, graph |
+| Agentic Lineage | Episode-centric provenance tracking for DDD operations |
+| Pattern Management | Pattern registration, SKOS edge management, pattern coverage views |
+| Coherence Scoring | Fitness functions, coverage views, coherence signal infrastructure |
+
+Every capability traces to at least one registered pattern (coherence signal). See [STRATEGIC_DDD.md § Capability-Pattern Coverage](STRATEGIC_DDD.md#capability-pattern-coverage).
+
+## Ownership
+
+**Owns (source of truth for):**
+
+- Global schema definitions (entity, edge, surface, delivery, pattern, brand)
+- Domain language ([UBIQUITOUS_LANGUAGE.md](../schemas/UBIQUITOUS_LANGUAGE.md))
+- Infrastructure services (Supabase, n8n, Qdrant, Neo4j)
+- Knowledge graph and RAG pipelines
+- MCP server and Query API for cross-repo agent access
+- Strategic DDD model ([STRATEGIC_DDD.md](STRATEGIC_DDD.md))
+
+**Does NOT own (consumed from elsewhere):**
+
+- Process documentation (semops-dx-orchestrator)
+- Global architecture docs (semops-dx-orchestrator)
+- Cross-repo coordination patterns (semops-dx-orchestrator)
+- Pattern YAML registry (semops-dx-orchestrator: `schemas/pattern_v1.yaml`)
+
+**Ubiquitous Language conformance:** This repo is the owner of [UBIQUITOUS_LANGUAGE.md](../schemas/UBIQUITOUS_LANGUAGE.md). All domain terms in code and docs must match.
 
 ---
 
@@ -72,7 +102,7 @@ This makes entity search effective for **topic discovery** — finding documents
 
 **Key decision:** Using different source text for entity vs chunk embeddings is the defining architectural choice. It creates a two-layer retrieval system where the same query can find different things at each layer. Entity search for "embeddings" returns `schema-reference.md` (metadata topic match); chunk search returns the specific paragraph explaining the embedding column (content match). This is what enables the hybrid search pattern.
 
-**Model:** OpenAI `text-embedding-3-small` (1536 dimensions) is used at both ingestion and query time. During ingestion, it embeds entity metadata and chunk content into stored vectors. At search time, it embeds the query string into the same vector space so cosine similarity scores are meaningful. The same model across all layers and repos ensures vector space alignment for cross-layer similarity and future coherence scoring with semops-data (ADR-0008: Unified Ingestion and Retrieval, D1).
+**Model:** OpenAI `text-embedding-3-small` (1536 dimensions) is used at both ingestion and query time. During ingestion, it embeds entity metadata and chunk content into stored vectors. At search time, it embeds the query string into the same vector space so cosine similarity scores are meaningful. The same model across all layers and repos ensures vector space alignment for cross-layer similarity and future coherence scoring with semops-data (ADR-0008, D1).
 
 ### Stage 4: Graph Materialization
 
@@ -149,65 +179,107 @@ The shared search module (`scripts/search.py`) implements all three modes as pur
 
 ## Cross-Repo Agent Integration
 
-The MCP server (`api/mcp_server.py`) exposes search to Claude Code agents in any repo. This is the primary cross-repo integration surface.
+The MCP server (`api/mcp_server.py`) exposes two query surfaces to Claude Code agents in any repo: **semantic search** (content discovery via embeddings) and **ACL queries** (deterministic architectural lookups against the DDD schema).
 
 ```
-┌──────────────────┐  ┌──────────────┐  ┌──────────────────────┐
-│ semops-publisher │  │ semops-data  │  │ semops-dx-           │
-│                  │  │              │  │   orchestrator       │
-│ Claude Code      │  │ Claude Code  │  │ Claude Code          │
-│   agent          │  │   agent      │  │   agent              │
-└──────┬───────────┘  └──────┬───────┘  └──────┬───────────────┘
-       │                     │                  │
-       │     MCP (stdio)     │                  │
-       └─────────────┬───────┘──────────────────┘
-                     │
-           ┌─────────▼──────────┐
-           │   semops-kb MCP    │
-           │                    │
-           │ search_knowledge_  │     ┌──────────────────┐
-           │   base (entities)  │────►│                  │
-           │ search_chunks      │     │  PostgreSQL +    │
-           │   (passages)       │────►│  pgvector        │
-           │ list_corpora       │     │                  │
-           └────────────────────┘     └──────────────────┘
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│ semops-publisher │     │   semops-data    │     │  semops-dx-orchestrator   │
+│              │     │              │     │              │
+│ Claude Code  │     │ Claude Code  │     │ Claude Code  │
+│   agent      │     │   agent      │     │   agent      │
+└──────┬───────┘     └──────┬───────┘     └──────┬───────┘
+       │                    │                    │
+       │     MCP (stdio)    │                    │
+       └────────────┬───────┘────────────────────┘
+                    │
+          ┌─────────▼──────────┐
+          │   semops-kb MCP    │
+          │                    │
+          │ Semantic Search    │     ┌──────────────────┐
+          │  search_knowledge_ │     │                  │
+          │    base (entities) │────►│  PostgreSQL +    │
+          │  search_chunks     │     │  pgvector        │
+          │    (passages)      │     │                  │
+          │  list_corpora      │     │  entity          │
+          │                    │────►│  document_chunk  │
+          │ ACL Queries        │     │  pattern         │
+          │  list_patterns     │     │  pattern_edge    │
+          │  get_pattern       │────►│  edge            │
+          │  search_patterns   │     │  views:          │
+          │  list_capabilities │     │   capability_    │
+          │  get_capability_   │     │     coverage     │
+          │    impact          │     │   integration_   │
+          │  query_integration │     │     map          │
+          │    _map            │     │   repo_          │
+          │  run_fitness_      │     │     capabilities │
+          │    checks          │     │                  │
+          └────────────────────┘     └──────────────────┘
 ```
 
 **Registered in:** `~/.claude.json` (global) and `.mcp.json` (project-level)
 
-Agents choose search modes based on their task:
+### Two Query Surfaces for Two Purposes
+
+| Query Type | Source of Truth | Purpose | Example |
+|-----------|----------------|---------|---------|
+| **Semantic (pgvector)** | Entity/chunk embeddings | Content discovery | "Find docs about semantic coherence" |
+| **Structured (SQL)** | DDD tables — the ACL | Architectural truth | "Which patterns does this capability implement?" |
+
+**Semantic search tools** (content discovery):
 - `search_knowledge_base` for topic discovery and document-level context
 - `search_chunks` for passage-level retrieval and precise citations
-- Corpus filtering narrows results to relevant knowledge domains
+- `list_corpora` for available knowledge domains
+
+**ACL query tools** (architectural truth — deterministic, same query = same answer):
+- `list_patterns` — pattern registry with provenance filter and coverage stats
+- `get_pattern` — single pattern with SKOS edges and coverage
+- `search_patterns` — semantic search scoped to pattern definitions
+- `list_capabilities` — capabilities with coherence signals (ADR-0009)
+- `get_capability_impact` — full dependency graph: patterns → repos → integrations
+- `query_integration_map` — DDD context map (repo-to-repo relationships)
+- `run_fitness_checks` — database-level governance validation
+
+The ACL tools query the strategic views (`pattern_coverage`, `capability_coverage`, `repo_capabilities`, `integration_map`) and base tables (`pattern`, `pattern_edge`, `edge`) directly. The shared query module (`scripts/schema_queries.py`) follows the same thin-wrapper pattern as `scripts/search.py`.
 
 ---
 
 ## Domain Model
 
-### Aggregate Root: Pattern
+### Core Aggregates: Pattern + Coherence
 
-**Pattern** is the aggregate root for the semantic operations model — an applied unit of meaning with a business purpose, measured for semantic coherence and optimization.
+The SemOps domain model has two core aggregates that form the **Semantic Optimization Loop** (ADR-0012):
+
+- **Pattern** (prescriptive) — what we should look like. An applied unit of meaning with a business purpose, organized via SKOS taxonomy with provenance tiers (1p/2p/3p) and adoption lineage (adopts/extends/modifies).
+- **Coherence Assessment** (evaluative/directive) — how well reality matches intent, and what to do about it. Cross-cutting measurement that audits the Pattern → Capability → Script chain and drives pattern evolution, reversal, or realignment.
+
+Pattern without Coherence is documentation. Coherence without Pattern is measurement without a reference. Together they are the Semantic Optimization Loop: Pattern pushes, Coherence aligns.
 
 Patterns have provenance tiers:
 - **3p (Third-party):** External standards we adopt (SKOS, PROV-O, DDD, Dublin Core, DAM)
 - **2p (Collaborative):** Shared with partners
 - **1p (First-party):** Our innovations that derive from 3p patterns
 
-1p patterns **adopt**, **extend**, or **modify** 3p patterns via `pattern_edge` relationships. This is the Semantic Optimization Loop: adopt standards, innovate on top.
+1p patterns **adopt**, **extend**, or **modify** 3p patterns via `pattern_edge` relationships.
+
+**Capabilities** are Entities (DDD building block) — produced by Pattern decisions, audited by Coherence, implementing multiple patterns. They exist in the space between both core aggregates.
+
+**Repositories** are Value Objects — identity doesn't matter, role and delivery mapping do. Repos can be reorganized without changing the domain model.
+
+See [STRATEGIC_DDD.md](STRATEGIC_DDD.md) for the full aggregate map and DDD building block classifications.
 
 ### Core Tables
 
 | Table | Purpose |
 |-------|---------|
-| `pattern` | Aggregate root — semantic units with SKOS properties |
-| `pattern_edge` | Pattern relationships (adopts, extends, modifies) |
-| `entity` | Content items (files, links) with embeddings and metadata |
+| `pattern` | Pattern Aggregate root — semantic units with SKOS properties |
+| `pattern_edge` | Pattern relationships (SKOS + adopts, extends, modifies) |
+| `entity` | Content, Capability, and Repository records (type discriminator) |
 | `document_chunk` | Passages within entities, with embeddings and heading hierarchy |
-| `edge` | Entity relationships (PROV-O predicates) |
-| `surface` | Publication/ingestion destinations |
-| `delivery` | Entity-to-surface publishing with per-surface governance |
-| `brand` | Schema.org Person/Organization/Brand |
-| `product` | Schema.org Product |
+| `edge` | Typed relationships (PROV-O, DDD predicates) |
+| `surface` | Surface Aggregate root — publication/ingestion destinations |
+| `delivery` | Content Aggregate child — entity-to-surface publishing with per-surface governance |
+| `brand` | Brand Aggregate root — Schema.org Person/Organization/Brand |
+| `product` | Brand Aggregate child — Schema.org Product |
 | `ingestion_episode` | Provenance tracking for DDD operations |
 
 Schema definitions: [UBIQUITOUS_LANGUAGE.md](../schemas/UBIQUITOUS_LANGUAGE.md), [SCHEMA_REFERENCE.md](../schemas/SCHEMA_REFERENCE.md), [phase2-schema.sql](../schemas/phase2-schema.sql)
@@ -231,43 +303,111 @@ This answers "why was this classified this way?" — critical for a system where
 
 ---
 
-## Key Files
+## Key Components
 
-| File | Purpose |
-|------|---------|
-| `scripts/search.py` | Shared search module — single source of truth for all search logic |
-| `scripts/generate_embeddings.py` | Entity embedding generation (`build_embedding_text()` defines what entities are embedded from) |
-| `scripts/ingest_from_source.py` | Unified ingestion: entity + chunks + graph in one pass |
-| `api/mcp_server.py` | MCP server for cross-repo agent KB access |
-| `api/query.py` | Query API (REST endpoints) |
-| `scripts/lineage/` | Episode-centric provenance system |
+### Scripts
+
+Scripts are capability implementations — small, focused, independently runnable. Each traces to a capability listed in the [Capabilities](#capabilities) section above.
+
+| Script | Capability | Purpose |
+| --- | --- | --- |
+| `scripts/ingest_from_source.py` | Ingestion Pipeline | Unified ingestion: entity + chunks + graph in one pass |
+| `scripts/entity_builder.py` | Ingestion Pipeline | Merge source defaults + LLM classification into entity dicts |
+| `scripts/source_config.py` | Ingestion Pipeline | YAML source config parser and routing rules |
+| `scripts/chunker.py` | Ingestion Pipeline | Heading-aware markdown chunking with overlap |
+| `scripts/classifiers/llm.py` | Ingestion Pipeline | LLM classification (content_type, concepts, edges) |
+| `scripts/classifiers/rules.py` | Ingestion Pipeline | Rule-based classification (corpus routing) |
+| `scripts/generate_embeddings.py` | Ingestion Pipeline | Entity embedding generation (`build_embedding_text()`) |
+| `scripts/docling_ingest.py` | Ingestion Pipeline | PDF/DOCX ingestion via Docling API |
+| `scripts/github_fetcher.py` | Ingestion Pipeline | GitHub repo file fetching |
+| `scripts/search.py` | Internal Knowledge Access | Shared search module (entity, chunk, hybrid) |
+| `scripts/schema_queries.py` | Internal Knowledge Access | Shared ACL query module (patterns, capabilities, integrations) |
+| `scripts/semantic_search.py` | Internal Knowledge Access | CLI for semantic search |
+| `scripts/materialize_graph.py` | Internal Knowledge Access | Backfill detected_edges to Neo4j |
+| `api/mcp_server.py` | Internal Knowledge Access | MCP server for cross-repo agent KB access (10 tools) |
+| `api/query.py` | Internal Knowledge Access | Query API (REST endpoints, port 8101) |
+| `scripts/init_schema.py` | Domain Data Model | Initialize PostgreSQL schema from phase2-schema.sql |
+| `scripts/ingest_architecture.py` | Domain Data Model | Parse STRATEGIC_DDD.md → capability/repo entities + edges |
+| `scripts/sync_neo4j.py` | Domain Data Model | Sync pattern/pattern_edge to Neo4j graph |
+| `scripts/ingest_domain_patterns.py` | Pattern Management | Register patterns from pattern_v1.yaml |
+| `scripts/bridge_content_patterns.py` | Pattern Management | HITL: extract detected_edges → human review → register |
+| `scripts/lineage/tracker.py` | Agentic Lineage | LineageTracker context manager for ingestion runs |
+| `scripts/lineage/episode.py` | Agentic Lineage | Episode model (operation, context, coherence_score) |
+| `scripts/db_utils.py` | *(shared utility)* | Database connection (`get_db_connection()`) |
+
+### Other Components
+
+| Component | Purpose |
+| --- | --- |
 | `schemas/UBIQUITOUS_LANGUAGE.md` | Domain definitions and business rules |
+| `schemas/SCHEMA_REFERENCE.md` | Column specs, JSONB schemas, constraints |
 | `schemas/phase2-schema.sql` | PostgreSQL schema implementation |
+| `schemas/fitness-functions.sql` | Database-level governance checks (10 functions) |
+| `config/sources/*.yaml` | Source configurations for ingestion routing |
 | `docker-compose.yml` | Infrastructure stack |
 
 ---
 
 ## Dependencies
 
-None — this is the foundation layer.
+| Repo | What We Consume |
+| --- | --- |
+| *(none)* | This is the foundation layer |
 
-## Depended On By
-
-| Repo | What it uses |
-|------|--------------|
-| `semops-dx-orchestrator` | Schema definitions, UBIQUITOUS_LANGUAGE.md |
+| Repo | What Consumes Us |
+| --- | --- |
+| `semops-dx-orchestrator` | Schema definitions, UBIQUITOUS_LANGUAGE.md, MCP server |
 | `semops-publisher` | Patterns, entities, knowledge base, MCP server |
 | `semops-docs` | Schema definitions, patterns |
 | `semops-data` | Docker services (pgvector), Query API, same embedding model for coherence scoring |
 | `semops-sites` | Supabase data |
 
+## Data Flows
+
+```text
+Source repos          semops-core                      Consumers
+(semops-docs,         ┌─────────────────────────────────┐
+ semops-publisher,    │                                 │    CLI
+ semops-dx-orchestrator)       │   Ingestion                     │    (semantic_search.py)
+     │            │   ├── Entity + metadata          │
+     │  GitHub    │   ├── Chunks + content           │    Query API
+     └──────────► │   ├── Embeddings (OpenAI)        │    (localhost:8101)
+        fetch     │   └── Graph edges (Neo4j)        │
+                  │                                 │    MCP Server
+                  │   Retrieval                     │    (cross-repo agents)
+                  │   ├── Entity search (topics)     │───►  semops-publisher
+                  │   ├── Chunk search (passages)    │───►  semops-data
+                  │   └── Hybrid search (both)       │───►  semops-dx-orchestrator
+                  │                                 │───►  semops-docs
+                  └─────────────────────────────────┘
+```
+
 ---
 
-## Related Documents
+## Related Documentation
 
 - [SEARCH_GUIDE.md](SEARCH_GUIDE.md) — Search modes, CLI usage, API endpoints, MCP tools
-- [INGESTION_GUIDE.md](INGESTION_GUIDE.md) — Ingestion pipeline, source configs, embedding generation
+- [USER_GUIDE.md](USER_GUIDE.md) — Ingestion pipeline, source configs, embedding generation
 - [INFRASTRUCTURE.md](INFRASTRUCTURE.md) — Services, ports, troubleshooting, health checks
-- ADR-0008: Unified Ingestion and Retrieval — Unified ingestion and retrieval pipeline
-- ADR-0004: Pattern as Aggregate Root — Pattern as aggregate root
+- [ADR-0008](decisions/ADR-0008-unified-ingestion-and-retrieval.md) — Unified ingestion and retrieval pipeline
+- [ADR-0004](decisions/ADR-0004-schema-phase2-pattern-aggregate-root.md) — Pattern as aggregate root (partially superseded by ADR-0012)
+- [ADR-0012](decisions/ADR-0012-pattern-coherence-co-equal-aggregates.md) — Pattern + Coherence as co-equal core aggregates
 - [GLOBAL_ARCHITECTURE.md](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/GLOBAL_ARCHITECTURE.md) — System landscape
+- [DIAGRAMS.md](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/DIAGRAMS.md) — Visual diagrams (context map, data flows, DDD model)
+- [REPOS.yaml](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/REPOS.yaml) — Structured repo registry
+- `docs/decisions/` — Architecture Decision Records for this repo
+
+---
+
+## Versioning Notes
+
+**Status values:**
+
+- `ACTIVE` — Current implemented state (one per doc type)
+- `PLANNED-A`, `PLANNED-B`, `PLANNED-C` — Alternative future states
+
+**When to create a PLANNED version:**
+
+- Significant architectural changes under consideration
+- Alternative approaches being evaluated
+- Future state design for upcoming work

@@ -2,9 +2,9 @@
 
 > **Repo:** `semops-core`
 > **Owner:** This repo owns and operates these services
-> **Version:** 2.0.0
-> **Last Updated:** 2026-02-13
-> **Related:** [ARCHITECTURE.md](ARCHITECTURE.md) (system design), [SEARCH_GUIDE.md](SEARCH_GUIDE.md) (usage), [INGESTION_GUIDE.md](INGESTION_GUIDE.md) (ingestion)
+> **Version:** 2.1.0
+> **Last Updated:** 2026-02-16
+> **Related:** [ARCHITECTURE.md](ARCHITECTURE.md) (system design), [SEARCH_GUIDE.md](SEARCH_GUIDE.md) (usage), [USER_GUIDE.md](USER_GUIDE.md) (ingestion)
 
 ---
 
@@ -12,30 +12,30 @@
 
 ### Always-On (Docker Compose)
 
-These services run via Docker Compose and are consumed by all SemOps repos.
+These services run via Docker Compose and are consumed by all Project Ike repos.
 
-| Service | Description |
-|---------|-------------|
-| Supabase Studio | Database UI, admin interface |
-| PostgreSQL (pooler) | Supavisor connection pooler (Supabase internals) |
-| PostgreSQL (direct) | Direct DB access — scripts and agents use this connection |
-| PostgREST | Auto-generated REST API |
-| n8n | Workflow automation |
-| Qdrant REST | Vector database (REST interface) |
-| Qdrant gRPC | Vector database (gRPC interface) |
-| Neo4j HTTP | Graph DB browser/API |
-| Neo4j Bolt | Graph DB connection protocol |
-| Ollama | Local LLM inference |
-| Docling | Document processing |
+| Service | Port | Purpose |
+|---------|------|---------|
+| Supabase Studio | 8000 | Database UI, admin interface |
+| PostgreSQL (pooler) | 5432 | Supavisor connection pooler (Supabase internals) |
+| PostgreSQL (direct) | 5434 | Direct DB access — scripts and agents use this port |
+| PostgREST | 3000 | Auto-generated REST API |
+| n8n | 5678 | Workflow automation |
+| Qdrant REST | 6333 | Vector database |
+| Qdrant gRPC | 6334 | Vector database (gRPC) |
+| Neo4j HTTP | 7474 | Graph DB browser/API |
+| Neo4j Bolt | 7687 | Graph DB connection protocol |
+| Ollama | 11434 | Local LLM inference |
+| Docling | 5001 | Document processing |
 
 ### Application Services (Run On Demand)
 
 These are Python processes started manually when needed.
 
-| Service | Command | Purpose |
-|---------|---------|---------|
-| Query API | `uvicorn api.query:app` | REST endpoints for semantic search |
-| MCP Server | `python -m api.mcp_server` | Agent KB access (managed by Claude Code) |
+| Service | Port | Command | Purpose |
+|---------|------|---------|---------|
+| Query API | 8101 | `uvicorn api.query:app --port 8101` | REST endpoints for semantic search |
+| MCP Server | stdio | `python -m api.mcp_server` | Agent KB access (managed by Claude Code) |
 
 **Query API** provides REST endpoints for entity search, chunk search, hybrid search, graph neighbors, and corpus listing. See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for endpoint details.
 
@@ -46,12 +46,34 @@ These are Python processes started manually when needed.
   "semops-kb": {
     "command": "python",
     "args": ["-m", "api.mcp_server"],
-    "cwd": "/path/to/semops-core"
+    "cwd": "."
   }
 }
 ```
 
-The MCP server exposes three tools: `search_knowledge_base` (entity search), `search_chunks` (passage search), and `list_corpora`. See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for usage.
+The MCP server exposes 10 tools in two categories:
+
+**Semantic search** (content discovery via embeddings):
+
+| Tool | Purpose |
+|------|---------|
+| `search_knowledge_base` | Entity-level semantic search |
+| `search_chunks` | Passage-level semantic search |
+| `list_corpora` | List available corpora with counts |
+
+**ACL queries** (deterministic architectural lookups):
+
+| Tool | Purpose |
+|------|---------|
+| `list_patterns` | Pattern registry with provenance filter and coverage |
+| `get_pattern` | Single pattern with SKOS edges and coverage |
+| `search_patterns` | Semantic search scoped to pattern definitions |
+| `list_capabilities` | Capabilities with coherence signals |
+| `get_capability_impact` | Dependency graph: patterns, repos, integrations |
+| `query_integration_map` | DDD context map (repo-to-repo relationships) |
+| `run_fitness_checks` | Database-level governance validation |
+
+See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for usage.
 
 ---
 
@@ -90,7 +112,7 @@ docker compose down -v
 | Variable | Purpose | Required |
 |----------|---------|----------|
 | `SEMOPS_DB_HOST` | Database host (default: `localhost`) | Yes |
-| `SEMOPS_DB_PORT` | Database port | Yes |
+| `SEMOPS_DB_PORT` | Database port (default: `5434`) | Yes |
 | `SEMOPS_DB_NAME` | Database name (default: `postgres`) | Yes |
 | `SEMOPS_DB_USER` | Database user (default: `postgres`) | Yes |
 | `SEMOPS_DB_PASSWORD` | Database password | Yes |
@@ -118,7 +140,7 @@ Scripts load these from `.env` via `scripts/db_utils.py`. The `get_db_connection
 
 Primary data store. All entities, chunks, embeddings, edges, and metadata live here.
 
-**Connection:** Scripts connect to PostgreSQL directly using the configured `SEMOPS_DB_HOST` and `SEMOPS_DB_PORT`. The pooler connection is used by Supabase internals only.
+**Connection:** Port 5434 (direct), port 5432 (pooler — Supabase internals only). Scripts use port 5434 by default.
 
 **Key extensions:** `pgvector` (vector similarity search with HNSW indexes), `pg_trgm` (trigram matching).
 
@@ -128,7 +150,7 @@ Primary data store. All entities, chunks, embeddings, edges, and metadata live h
 
 Graph database for relationship traversal between entities and concepts.
 
-**Access:** HTTP API and Bolt protocol. No authentication configured for local development.
+**Access:** HTTP API on port 7474, Bolt protocol on port 7687. No authentication configured for local development.
 
 **Populated by:** `scripts/materialize_graph.py` (backfill) and automatic graph writes during ingestion. Pattern taxonomy synced from `pattern_edge` table via `scripts/sync_neo4j.py`.
 
@@ -156,20 +178,91 @@ Knowledge is organized into corpora for filtered retrieval. Corpus assignment ha
 | `research_ai` | AI/ML research and experiments |
 | `research_general` | General research and explorations |
 
-Routing rules are defined per-source in `config/sources/*.yaml`. See [INGESTION_GUIDE.md](INGESTION_GUIDE.md) for source config format and routing details.
+Routing rules are defined per-source in `config/sources/*.yaml`. See [USER_GUIDE.md](USER_GUIDE.md) for source config format and routing details.
+
+---
+
+## Connection Patterns
+
+How this repo's scripts connect to shared infrastructure:
+
+| Service | Method | Details |
+| --- | --- | --- |
+| PostgreSQL | `localhost:5434` | Via `SEMOPS_DB_*` env vars. Shared module: `scripts/db_utils.py` |
+| Qdrant | `localhost:6333` | Via REST API. Used by semops-data; semops-core uses pgvector |
+| Neo4j | `localhost:7474` / `:7687` | HTTP + Bolt. No auth in dev |
+| MCP Server | stdio | Registered in `~/.claude.json` (global) and `.mcp.json` (project) |
+
+---
+
+## Docker Configuration
+
+### Network
+
+| Network | Services | Purpose |
+| --- | --- | --- |
+| `semops-network` | All Docker Compose services | Internal container communication |
+
+> **Convention:** Cross-repo access uses `localhost` port mapping, not Docker internal networking. See [GLOBAL_INFRASTRUCTURE.md](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/GLOBAL_INFRASTRUCTURE.md#how-repos-connect).
+
+---
+
+## Python Stack
+
+| Property | Value |
+| --- | --- |
+| **Python version** | `>=3.12` |
+| **Package manager** | `uv` with `pyproject.toml` |
+| **Virtual environment** | `.venv/` |
+| **Linter/formatter** | `ruff` |
+| **Test framework** | `pytest` |
+
+### Key Dependencies
+
+| Library | Purpose | Shared With |
+| --- | --- | --- |
+| `psycopg[binary]` | PostgreSQL driver (primary) | — |
+| `fastapi` / `uvicorn` | Query API, MCP server hosting | — |
+| `mcp` | MCP server protocol (FastMCP) | — |
+| `openai` | Embeddings (`text-embedding-3-small`) | semops-data |
+| `anthropic` | LLM classification (Claude) | semops-publisher |
+| `neo4j` | Graph DB driver | — |
+| `pydantic` / `pydantic-settings` | Data models, settings, env loading | publisher, data |
+| `httpx` | HTTP client (Docling integration) | backoffice |
+| `pyyaml` | YAML parsing (source configs, patterns) | all repos |
+| `click` | CLI scaffolding | publisher, data |
+| `rich` | CLI output formatting | publisher |
+| `ulid-py` | ULID generation for entity IDs | — |
+
+### Setup
+
+```bash
+uv venv && source .venv/bin/activate && uv sync
+```
 
 ---
 
 ## Health Checks
 
-Each service exposes a health endpoint. Verify infrastructure readiness by checking:
+```bash
+# PostgreSQL (direct port)
+pg_isready -h localhost -p 5434
 
-- **PostgreSQL** — `pg_isready` confirms the database is accepting connections
-- **Supabase Studio** — API health endpoint confirms the Studio and Kong gateway are running
-- **Qdrant** — Health endpoint confirms the vector database is responsive
-- **n8n** — Health endpoint confirms the workflow engine is running
-- **Neo4j** — HTTP endpoint confirms the graph database is available
-- **Query API** (when running) — Health endpoint confirms the search API is responsive
+# Supabase Studio
+curl -s http://localhost:8000/api/health
+
+# Qdrant
+curl -s http://localhost:6333/health
+
+# n8n
+curl -s http://localhost:5678/healthz
+
+# Neo4j
+curl -s http://localhost:7474
+
+# Query API (when running)
+curl -s http://localhost:8101/health
+```
 
 ---
 
@@ -202,21 +295,20 @@ python scripts/init_schema.py
 
 ### PostgreSQL won't start
 
-**Symptoms:** `start_services.py` hangs waiting for PostgreSQL, database port not responding.
+**Symptoms:** `start_services.py` hangs waiting for PostgreSQL, port 5434 not responding.
 
 **Cause:** Previous container didn't shut down cleanly, or port conflict with local PostgreSQL.
 
 **Fix:**
 ```bash
-# Check for processes using the PostgreSQL port
-sudo lsof -i :<your-db-port>
+sudo lsof -i :5434
 docker compose down -v
 docker compose up -d
 ```
 
 ### Supabase Studio 500 error
 
-**Symptoms:** Supabase Studio returns 500, loads but shows errors.
+**Symptoms:** `http://localhost:8000` returns 500, Studio loads but shows errors.
 
 **Cause:** Missing or incorrect environment variables, or database not initialized.
 
@@ -232,7 +324,7 @@ python start_services.py --skip-clone
 
 ### Qdrant connection refused
 
-**Symptoms:** Vector operations fail, Qdrant not responding.
+**Symptoms:** Vector operations fail, port 6333 not responding.
 
 **Fix:**
 ```bash
@@ -276,5 +368,6 @@ docker compose restart qdrant
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Retrieval pipeline and system design
 - [SEARCH_GUIDE.md](SEARCH_GUIDE.md) — Search modes, API endpoints, MCP tools
-- [INGESTION_GUIDE.md](INGESTION_GUIDE.md) — Ingestion pipeline and source configs
+- [USER_GUIDE.md](USER_GUIDE.md) — Ingestion pipeline and source configs
 - [GLOBAL_ARCHITECTURE.md](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/GLOBAL_ARCHITECTURE.md) — System landscape
+- [PORTS.md](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/PORTS.md) — Full port registry across all repos

@@ -1,6 +1,7 @@
 # User Guide: Search & Retrieval
 
-> **Version:** 1.0.0 | **Last Updated:** 2026-02-13
+> **Version:** 2.0.0 | **Last Updated:** 2026-02-16
+> **Related Issues:** #109 (query API), #131 (shared search module), #133 (ACL query tools)
 > **See also:** [INGESTION_GUIDE.md](INGESTION_GUIDE.md) for ingesting content into the knowledge base
 
 ---
@@ -12,12 +13,12 @@
 | CLI search (chunks) | `python scripts/semantic_search.py "query"` |
 | CLI search (entities) | `python scripts/semantic_search.py "query" --mode entities` |
 | CLI search (hybrid) | `python scripts/semantic_search.py "query" --mode hybrid` |
-| Start query API | `uvicorn api.query:app` |
-| Check entity count | `SELECT count(*) FROM entity;` |
-| Check chunk count | `SELECT count(*) FROM document_chunk;` |
-| Corpus distribution | `SELECT metadata->>'corpus', count(*) FROM entity GROUP BY 1 ORDER BY 2 DESC;` |
+| Start query API | `uvicorn api.query:app --port 8101` |
+| Check entity count | `docker exec semops-hub-pg psql -U postgres -d postgres -c "SELECT count(*) FROM entity;"` |
+| Check chunk count | `docker exec semops-hub-pg psql -U postgres -d postgres -c "SELECT count(*) FROM document_chunk;"` |
+| Corpus distribution | `docker exec semops-hub-pg psql -U postgres -d postgres -c "SELECT metadata->>'corpus', count(*) FROM entity GROUP BY 1 ORDER BY 2 DESC;"` |
 
-**Note:** All Python commands assume `source .venv/bin/activate` (or use `uv run`) and `OPENAI_API_KEY` is set (loaded from `.env`). SQL queries can be run via your preferred database client.
+**Note:** All Python commands assume `source .venv/bin/activate` (or use `uv run`) and `OPENAI_API_KEY` is set (loaded from `.env`).
 
 ---
 
@@ -26,7 +27,7 @@
 1. **Docker services running** — `python start_services.py --skip-clone`
 2. **Python venv activated** — `source .venv/bin/activate` (or use `uv run`)
 3. **`.env` file** with `OPENAI_API_KEY` and `POSTGRES_PASSWORD`
-4. **Database connection** — Scripts connect automatically via database connection environment variables configured in `.env`. Direct PostgreSQL access is available via the configured database connection.
+4. **Database connection** — Scripts connect automatically via `SEMOPS_DB_*` env vars configured in `.env`. Direct PostgreSQL access is available on port 5434.
 5. **Content ingested** — At least one source ingested with embeddings generated. See [INGESTION_GUIDE.md](INGESTION_GUIDE.md).
 
 ---
@@ -168,7 +169,7 @@ python scripts/semantic_search.py \
 **Start the server:**
 
 ```bash
-uvicorn api.query:app
+uvicorn api.query:app --port 8101
 ```
 
 **Endpoints:**
@@ -185,7 +186,7 @@ uvicorn api.query:app
 **Entity search** (document-level):
 
 ```bash
-curl -s http://<query-api>/search \
+curl -s http://localhost:8101/search \
   -H "Content-Type: application/json" \
   -d '{
     "query": "What is semantic coherence?",
@@ -200,7 +201,7 @@ curl -s http://<query-api>/search \
 **Chunk search** (passage-level):
 
 ```bash
-curl -s http://<query-api>/search/chunks \
+curl -s http://localhost:8101/search/chunks \
   -H "Content-Type: application/json" \
   -d '{
     "query": "semantic compression in DDD",
@@ -214,7 +215,7 @@ curl -s http://<query-api>/search/chunks \
 **Hybrid search** (entity then chunk two-stage):
 
 ```bash
-curl -s http://<query-api>/search/hybrid \
+curl -s http://localhost:8101/search/hybrid \
   -H "Content-Type: application/json" \
   -d '{
     "query": "semantic flywheel pattern",
@@ -229,7 +230,7 @@ Returns top entities with their best-matching chunks inlined.
 **Graph neighbors:**
 
 ```bash
-curl -s http://<query-api>/graph/neighbors/semantic-flywheel | python3 -m json.tool
+curl -s http://localhost:8101/graph/neighbors/semantic-flywheel | python3 -m json.tool
 ```
 
 Returns related entities and concepts from the Neo4j knowledge graph with relationship types and directions.
@@ -237,18 +238,20 @@ Returns related entities and concepts from the Neo4j knowledge graph with relati
 **List corpora:**
 
 ```bash
-curl -s http://<query-api>/corpora | python3 -m json.tool
+curl -s http://localhost:8101/corpora | python3 -m json.tool
 ```
 
 ---
 
 ## MCP Server (Cross-Repo Agent Access)
 
-The MCP server allows Claude Code agents in any repo to query the knowledge base.
+The MCP server exposes 10 tools across two query surfaces, allowing Claude Code agents in any repo to query the knowledge base.
 
 **Configuration:** Already registered in `~/.claude.json` as `semops-kb`. Also configured in `.mcp.json` for project-level access.
 
-**Available tools:**
+### Semantic Search Tools (Content Discovery)
+
+These use pgvector embeddings for probabilistic matching — best for finding relevant content.
 
 | Tool | Description |
 |------|-------------|
@@ -256,7 +259,7 @@ The MCP server allows Claude Code agents in any repo to query the knowledge base
 | `search_chunks` | Chunk (passage) level semantic search with heading hierarchy context |
 | `list_corpora` | List available corpora with counts |
 
-**Usage from any repo agent:**
+**Usage:**
 
 ```
 Use the search_knowledge_base tool to find entities about "semantic coherence"
@@ -266,7 +269,40 @@ Use the search_chunks tool to find specific passages about "anti-corruption laye
 for precise citation in a document.
 ```
 
-**Requires:** Docker services running and database connection environment variables configured in `.env`.
+### ACL Query Tools (Architectural Truth)
+
+These are deterministic SQL lookups against the DDD schema — exact results from committed edges and the pattern registry. Use these when you need architecturally-aligned answers, not probabilistic matches.
+
+| Tool | Description |
+|------|-------------|
+| `list_patterns` | Pattern registry with optional provenance filter (`1p`, `3p`) and coverage statistics (capability/repo/content counts) |
+| `get_pattern` | Single pattern with all SKOS edges (broader/narrower/related), adoption relationships (adopts/extends/modifies), and coverage |
+| `search_patterns` | Semantic search over pattern embeddings — finds patterns by meaning, not just ID |
+| `list_capabilities` | Capabilities from the `capability_coverage` view with optional domain classification filter (`core`, `supporting`, `generic`) |
+| `get_capability_impact` | Full impact analysis for a capability: implementing patterns, delivering repos, and integration dependencies between those repos |
+| `query_integration_map` | DDD context map — integration edges between repos with patterns (shared-kernel, conformist, customer-supplier, ACL), direction, and shared artifacts |
+| `run_fitness_checks` | Database-level governance checks (10 functions). Returns violations with severity (CRITICAL/HIGH/MEDIUM/LOW). Optional severity filter |
+
+**Usage:**
+
+```
+Use the list_patterns tool with provenance ["3p"] to see all adopted third-party patterns.
+
+Use the get_capability_impact tool with capability_id "ingestion-pipeline" to see
+what patterns it implements, which repos deliver it, and integration dependencies.
+
+Use the run_fitness_checks tool to check for schema governance violations.
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `api/mcp_server.py` | MCP tool definitions (FastMCP, stdio transport) |
+| `scripts/search.py` | Shared semantic search module (entity, chunk, hybrid) |
+| `scripts/schema_queries.py` | Shared ACL query module (patterns, capabilities, integrations, fitness) |
+
+**Requires:** Docker services running and `SEMOPS_DB_*` env vars configured in `.env`.
 
 ---
 
@@ -274,11 +310,11 @@ for precise citation in a document.
 
 ### Database Connection
 
-Scripts connect automatically via database connection environment variables configured in `.env`. Direct PostgreSQL access is available via the configured database connection.
+Scripts connect automatically via `SEMOPS_DB_*` env vars configured in `.env`. Direct PostgreSQL access is available on port 5434.
 
 **Error:** `connection refused`
-**Cause:** Docker services not running, or `.env` missing database connection variables.
-**Fix:** Start services with `python start_services.py --skip-clone` and verify `.env` has the database connection settings.
+**Cause:** Docker services not running, or `.env` missing `SEMOPS_DB_*` variables.
+**Fix:** Start services with `python start_services.py --skip-clone` and verify `.env` has the `SEMOPS_DB_*` connection settings.
 
 ### Embedding Generation
 
@@ -292,4 +328,4 @@ export $(grep OPENAI_API_KEY .env)
 ### MCP Server
 
 **Server won't start:**
-**Check:** Verify Docker services are running and `.env` has correct database connection settings.
+**Check:** Verify Docker services are running and `.env` has correct `SEMOPS_DB_*` connection settings. Direct PostgreSQL access is on port 5434.

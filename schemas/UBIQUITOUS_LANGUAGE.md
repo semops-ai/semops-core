@@ -32,7 +32,7 @@ SemOps is built on a mental model and three pillars:
 
 - **Strategic Data** — A playbook for making data a first-class strategic asset. Data must be governed, structured, and treated as an organizational challenge.
 
-- **Symbiotic Architecture** — Encode your strategy into your systems so humans and AI can operate from shared structure. DDD provides the foundation.
+- **Explicit Architecture** — Encode your strategy into your systems so humans and AI can operate from shared structure. DDD provides the foundation.
 
 - **Semantic Optimization** — Elevate your organization to operate like well-designed software: agent-ready, self-validating, and expanding through patterns, not features.
 
@@ -111,7 +111,7 @@ Derived from the capability audit in [STRATEGIC_DDD.md](../docs/STRATEGIC_DDD.md
 | **`agentic-lineage`** | Extends lineage tracking with agent decision context and trust provenance. | agentic-lineage | OpenLineage, Episode Provenance |
 | **`semantic-object-pattern`** | Patterns as the aggregate root — provenance-tracked, lineage-measured, AI-agent-usable semantic objects. | pattern-management | Knowledge Organization Systems, Pattern Language |
 | **`scale-projection`** | Validate domain coherence by projecting architecture to scale. Manual HITL processes intentionally generate structured ML training data. | style-learning, synthesis-simulation, autonomous-execution | RLHF, SECI, CI/CD |
-| **`symbiotic-enterprise`** | Enterprise systems treat architecture, data, and AI as first class. Humble tools become agent-addressable signal streams. | orchestration, context-engineering, attention-management, financial-pipeline | Platform Engineering, Context Engineering |
+| **`explicit-enterprise`** | Enterprise systems treat architecture, data, and AI as first class. Humble tools become agent-addressable signal streams. | orchestration, context-engineering, attention-management, financial-pipeline | Platform Engineering, Context Engineering |
 
 ---
 
@@ -151,7 +151,7 @@ Patterns are typed by their role in the knowledge architecture:
 
 | Type | Purpose | Examples |
 |------|---------|---------|
-| **concept** | Theoretical/abstract knowledge — ideas, frameworks, principles that inform design but are not directly coded as system features | `scale-projection`, `symbiotic-enterprise`, `seci`, `pattern-language` |
+| **concept** | Theoretical/abstract knowledge — ideas, frameworks, principles that inform design but are not directly coded as system features | `scale-projection`, `explicit-enterprise`, `seci`, `pattern-language` |
 | **domain** | Patterns that model the knowledge domain — what the system represents and reasons about | `ddd`, `skos`, `prov-o`, `semantic-coherence`, `semantic-ingestion` |
 | **implementation** | Solution-space patterns — how we build, deploy, and integrate. Specific technical choices and methods applied to realize the domain model | `shared-kernel`, `medallion-architecture`, `jamstack`, `mirror-architecture`, `ci-cd` |
 
