@@ -1,0 +1,11 @@
+```scss
+Home
+├─ Project Map (how to read the Meta Project)
+├─ How We Ship Content (blog/YT/LI pipeline)
+├─ Concepts (Deep Thoughts index)
+├─ Data & Lineage (where events are logged)
+└─ Runbooks
+   ├─ n8n flows
+   ├─ RAG ingestion manifest
+   └─ Publishing checklist
+```

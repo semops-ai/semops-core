@@ -17,17 +17,17 @@
 -- A run contains multiple episodes - one per operation performed.
 
 CREATE TABLE IF NOT EXISTS ingestion_run (
-  id TEXT PRIMARY KEY,                              -- ulid or uuid
-  run_type TEXT NOT NULL
-    CHECK (run_type IN ('manual', 'scheduled', 'agent')),
-  agent_name TEXT,                                  -- e.g., 'ingest_from_source', 'research_synthesizer'
-  source_name TEXT,                                 -- config source name (e.g., 'my-source')
-  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  completed_at TIMESTAMPTZ,
-  status TEXT NOT NULL DEFAULT 'running'
-    CHECK (status IN ('running', 'completed', 'failed', 'cancelled')),
-  source_config JSONB NOT NULL DEFAULT '{}',        -- snapshot of config used
-  metrics JSONB NOT NULL DEFAULT '{}'               -- run-level metrics (files_processed, entities_created, etc.)
+ id TEXT PRIMARY KEY, -- ulid or uuid
+ run_type TEXT NOT NULL
+ CHECK (run_type IN ('manual', 'scheduled', 'agent')),
+ agent_name TEXT, -- e.g., 'ingest_from_source', 'research_synthesizer'
+ source_name TEXT, -- config source name (e.g., 'project-ike-private')
+ started_at TIMESTAMPTZ NOT NULL DEFAULT now,
+ completed_at TIMESTAMPTZ,
+ status TEXT NOT NULL DEFAULT 'running'
+ CHECK (status IN ('running', 'completed', 'failed', 'cancelled')),
+ source_config JSONB NOT NULL DEFAULT '{}', -- snapshot of config used
+ metrics JSONB NOT NULL DEFAULT '{}' -- run-level metrics (files_processed, entities_created, etc.)
 );
 
 COMMENT ON TABLE ingestion_run IS 'Pipeline execution tracking - each run contains multiple episodes';
@@ -49,49 +49,49 @@ COMMENT ON COLUMN ingestion_run.metrics IS 'Aggregated metrics: files_processed,
 -- - Agent metadata (for reproducibility and audits)
 
 CREATE TABLE IF NOT EXISTS ingestion_episode (
-  id TEXT PRIMARY KEY,                              -- ulid for time-ordering
-  run_id TEXT REFERENCES ingestion_run(id) ON DELETE SET NULL,  -- NULL if standalone
+ id TEXT PRIMARY KEY, -- ulid for time-ordering
+ run_id TEXT REFERENCES ingestion_run(id) ON DELETE SET NULL, -- NULL if standalone
 
-  -- What was the operation?
-  operation TEXT NOT NULL
-    CHECK (operation IN (
-      'ingest',           -- new entity created from source
-      'classify',         -- entity gets primary_pattern_id
-      'declare_pattern',  -- new pattern created from synthesis
-      'publish',          -- delivery created (original)
-      'synthesize',       -- research → pattern emergence
-      'create_edge',      -- relationship established
-      'embed'             -- embedding generated
-    )),
+ -- What was the operation?
+ operation TEXT NOT NULL
+ CHECK (operation IN (
+ 'ingest', -- new entity created from source
+ 'classify', -- entity gets primary_pattern_id
+ 'declare_pattern', -- new pattern created from synthesis
+ 'publish', -- delivery created (original)
+ 'synthesize', -- research → pattern emergence
+ 'create_edge', -- relationship established
+ 'embed' -- embedding generated
+ )),
 
-  -- What was created/modified?
-  target_type TEXT NOT NULL
-    CHECK (target_type IN ('entity', 'pattern', 'edge', 'delivery')),
-  target_id TEXT NOT NULL,
+ -- What was created/modified?
+ target_type TEXT NOT NULL
+ CHECK (target_type IN ('entity', 'pattern', 'edge', 'delivery')),
+ target_id TEXT NOT NULL,
 
-  -- Context used (for classification/declaration audits)
-  context_pattern_ids TEXT[] DEFAULT '{}',          -- patterns retrieved/considered
-  context_entity_ids TEXT[] DEFAULT '{}',           -- entities used as context
+ -- Context used (for classification/declaration audits)
+ context_pattern_ids TEXT[] DEFAULT '{}', -- patterns retrieved/considered
+ context_entity_ids TEXT[] DEFAULT '{}', -- entities used as context
 
-  -- Quality signals
-  coherence_score DECIMAL(4,3)                      -- 0.000-1.000, NULL if not computed
-    CHECK (coherence_score IS NULL OR (coherence_score >= 0 AND coherence_score <= 1)),
+ -- Quality signals
+ coherence_score DECIMAL(4,3) -- 0.000-1.000, NULL if not computed
+ CHECK (coherence_score IS NULL OR (coherence_score >= 0 AND coherence_score <= 1)),
 
-  -- Agent info (for reproducibility)
-  agent_name TEXT,                                  -- e.g., 'llm_classifier', 'graph_classifier'
-  agent_version TEXT,                               -- e.g., '1.0.0'
-  model_name TEXT,                                  -- e.g., 'gpt-4o-mini', 'text-embedding-3-small'
-  prompt_hash TEXT,                                 -- hash of prompt template for reproducibility
-  token_usage JSONB DEFAULT '{}',                   -- {prompt_tokens, completion_tokens, total_tokens}
+ -- Agent info (for reproducibility)
+ agent_name TEXT, -- e.g., 'llm_classifier', 'graph_classifier'
+ agent_version TEXT, -- e.g., '1.0.0'
+ model_name TEXT, -- e.g., 'gpt-4o-mini', 'text-embedding-3-small'
+ prompt_hash TEXT, -- hash of prompt template for reproducibility
+ token_usage JSONB DEFAULT '{}', -- {prompt_tokens, completion_tokens, total_tokens}
 
-  -- Detected edges (for model-proposed relationships)
-  detected_edges JSONB DEFAULT '[]',                -- [{predicate, target_id, strength, rationale}]
+ -- Detected edges (for model-proposed relationships)
+ detected_edges JSONB DEFAULT '[]', -- [{predicate, target_id, strength, rationale}]
 
-  -- Metadata
-  input_hash TEXT,                                  -- hash of input for deduplication
-  error_message TEXT,                               -- if operation failed
-  metadata JSONB NOT NULL DEFAULT '{}',             -- flexible additional fields
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+ -- Metadata
+ input_hash TEXT, -- hash of input for deduplication
+ error_message TEXT, -- if operation failed
+ metadata JSONB NOT NULL DEFAULT '{}', -- flexible additional fields
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now
 );
 
 COMMENT ON TABLE ingestion_episode IS 'Episode-centric provenance: each DDD-touching operation with context';
@@ -129,17 +129,17 @@ CREATE INDEX IF NOT EXISTS idx_episode_context_entities ON ingestion_episode USI
 -- Recent episodes with run context
 CREATE OR REPLACE VIEW recent_episodes AS
 SELECT
-  e.id AS episode_id,
-  e.operation,
-  e.target_type,
-  e.target_id,
-  e.coherence_score,
-  e.agent_name,
-  e.created_at,
-  r.id AS run_id,
-  r.run_type,
-  r.source_name,
-  r.status AS run_status
+ e.id AS episode_id,
+ e.operation,
+ e.target_type,
+ e.target_id,
+ e.coherence_score,
+ e.agent_name,
+ e.created_at,
+ r.id AS run_id,
+ r.run_type,
+ r.source_name,
+ r.status AS run_status
 FROM ingestion_episode e
 LEFT JOIN ingestion_run r ON e.run_id = r.id
 ORDER BY e.created_at DESC
@@ -150,16 +150,16 @@ COMMENT ON VIEW recent_episodes IS 'Last 100 episodes with run context for monit
 -- Entity lineage: all episodes that touched an entity
 CREATE OR REPLACE VIEW entity_lineage AS
 SELECT
-  e.target_id AS entity_id,
-  e.operation,
-  e.context_pattern_ids,
-  e.coherence_score,
-  e.agent_name,
-  e.model_name,
-  e.detected_edges,
-  e.created_at AS episode_at,
-  r.source_name,
-  r.run_type
+ e.target_id AS entity_id,
+ e.operation,
+ e.context_pattern_ids,
+ e.coherence_score,
+ e.agent_name,
+ e.model_name,
+ e.detected_edges,
+ e.created_at AS episode_at,
+ r.source_name,
+ r.run_type
 FROM ingestion_episode e
 LEFT JOIN ingestion_run r ON e.run_id = r.id
 WHERE e.target_type = 'entity'
@@ -170,14 +170,14 @@ COMMENT ON VIEW entity_lineage IS 'Full lineage history for entities - for "why 
 -- Pattern emergence: episodes that declared patterns
 CREATE OR REPLACE VIEW pattern_emergence AS
 SELECT
-  e.target_id AS pattern_id,
-  e.context_pattern_ids AS source_patterns,
-  e.context_entity_ids AS source_entities,
-  e.coherence_score,
-  e.agent_name,
-  e.detected_edges AS proposed_edges,
-  e.created_at AS declared_at,
-  r.source_name AS research_source
+ e.target_id AS pattern_id,
+ e.context_pattern_ids AS source_patterns,
+ e.context_entity_ids AS source_entities,
+ e.coherence_score,
+ e.agent_name,
+ e.detected_edges AS proposed_edges,
+ e.created_at AS declared_at,
+ r.source_name AS research_source
 FROM ingestion_episode e
 LEFT JOIN ingestion_run r ON e.run_id = r.id
 WHERE e.operation = 'declare_pattern'
@@ -190,5 +190,5 @@ COMMENT ON VIEW pattern_emergence IS 'Track how patterns emerge from research sy
 -- ============================================================================
 
 INSERT INTO schema_version (version, description) VALUES
-  ('7.1.0', 'Episode-Centric Provenance: ingestion_run and ingestion_episode tables')
+ ('7.1.0', 'Episode-Centric Provenance: ingestion_run and ingestion_episode tables')
 ON CONFLICT (version) DO NOTHING;

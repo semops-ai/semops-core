@@ -1,64 +1,64 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://projectike.dev/schemas/filespec_v1.json",
-  "title": "Filespec V1",
-  "description": "Physical location and file metadata for entities",
-  "type": "object",
-  "required": ["uri"],
-  "properties": {
-    "$schema": {
-      "type": "string",
-      "const": "filespec_v1",
-      "description": "Schema version identifier"
-    },
-    "uri": {
-      "type": "string",
-      "description": "Location of the file (file://, s3://, gs://, https://)",
-      "examples": [
-        "file:///papers/attention.pdf",
-        "s3://bucket/documents/doc.pdf",
-        "https://youtube.com/watch?v=abc123"
-      ]
-    },
-    "format": {
-      "type": "string",
-      "description": "File format/extension",
-      "examples": ["pdf", "markdown", "mp4", "jpg", "txt", "json", "csv"]
-    },
-    "mime_type": {
-      "type": "string",
-      "description": "MIME type of the file",
-      "examples": ["application/pdf", "text/markdown", "video/mp4", "image/jpeg"]
-    },
-    "hash": {
-      "type": "string",
-      "description": "Content hash for verification (algorithm:hash)",
-      "pattern": "^(sha256|md5|sha1):[a-f0-9]+$",
-      "examples": ["sha256:abc123def456..."]
-    },
-    "size_bytes": {
-      "type": "integer",
-      "description": "File size in bytes",
-      "minimum": 0
-    },
-    "encoding": {
-      "type": "string",
-      "description": "Character encoding (for text files)",
-      "examples": ["utf-8", "ascii", "utf-16"]
-    },
-    "platform": {
-      "type": "string",
-      "description": "Platform for links (youtube, github, etc.)",
-      "examples": ["youtube", "github", "arxiv", "gdrive"]
-    },
-    "accessible": {
-      "type": "boolean",
-      "description": "Whether the file/link is currently accessible"
-    },
-    "last_checked": {
-      "type": "string",
-      "format": "date-time",
-      "description": "When the file/link was last verified as accessible"
-    }
-  }
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "https://projectike.dev/schemas/filespec_v1.json",
+ "title": "Filespec V1",
+ "description": "Physical location and file metadata for entities",
+ "type": "object",
+ "required": ["uri"],
+ "properties": {
+ "$schema": {
+ "type": "string",
+ "const": "filespec_v1",
+ "description": "Schema version identifier"
+ },
+ "uri": {
+ "type": "string",
+ "description": "Location of the file (file://, s3://, gs://, https://)",
+ "examples": [
+ "file:///papers/attention.pdf",
+ "s3://bucket/documents/doc.pdf",
+ "https://youtube.com/watch?v=abc123"
+ ]
+ },
+ "format": {
+ "type": "string",
+ "description": "File format/extension",
+ "examples": ["pdf", "markdown", "mp4", "jpg", "txt", "json", "csv"]
+ },
+ "mime_type": {
+ "type": "string",
+ "description": "MIME type of the file",
+ "examples": ["application/pdf", "text/markdown", "video/mp4", "image/jpeg"]
+ },
+ "hash": {
+ "type": "string",
+ "description": "Content hash for verification (algorithm:hash)",
+ "pattern": "^(sha256|md5|sha1):[a-f0-9]+$",
+ "examples": ["sha256:abc123def456..."]
+ },
+ "size_bytes": {
+ "type": "integer",
+ "description": "File size in bytes",
+ "minimum": 0
+ },
+ "encoding": {
+ "type": "string",
+ "description": "Character encoding (for text files)",
+ "examples": ["utf-8", "ascii", "utf-16"]
+ },
+ "platform": {
+ "type": "string",
+ "description": "Platform for links (youtube, github, etc.)",
+ "examples": ["youtube", "github", "arxiv", "gdrive"]
+ },
+ "accessible": {
+ "type": "boolean",
+ "description": "Whether the file/link is currently accessible"
+ },
+ "last_checked": {
+ "type": "string",
+ "format": "date-time",
+ "description": "When the file/link was last verified as accessible"
+ }
+ }
 }

@@ -1,0 +1,85 @@
+# Source Configuration for semops-publisher (Publishing/Content Workflow)
+# $schema: source_config_v1
+
+source_id: github-semops-publisher
+surface_id: github-timjmitchell
+name: "SemOps Publisher (semops-publisher)"
+
+github:
+ owner: timjmitchell
+ repo: semops-publisher
+ branch: main
+ base_path: ""
+ include_directories:
+ - posts
+ - docs
+ - style-guides
+ exclude_patterns:
+ - "**/TEMPLATE.md"
+ - "docs/resumes/**"
+ file_extensions:
+ - .md
+
+# Default values applied to all entities from this source
+defaults:
+ asset_type: file
+ version: "1.0"
+
+# Attribution template for all entities
+attribution:
+ $schema: attribution_v2
+ creator:
+ - Tim Mitchell
+ rights: CC-BY-4.0
+ organization: TJMConsulting
+ platform: github
+ channel: timjmitchell
+ epistemic_status: synthesis
+
+# LLM classification configuration
+llm_classify:
+ enabled: true
+ model: claude-opus-4-5-20251101
+ fields:
+ - concept_ownership
+ - content_type
+ - primary_concept
+ - broader_concepts
+ - narrower_concepts
+ - subject_area
+ - summary
+
+# Corpus routing: map file paths to corpus + content_type (ADR-0005)
+# Rules are evaluated in order; first match wins.
+corpus_routing:
+ # Publication status is determined by delivery.approval_status (pending → approved → rejected),
+ # not by directory structure. All posts route to `published` corpus; approval_status gates
+ # Delivery records and coherence tracking.
+ rules:
+ # Lifecycle: draft/archive content (ingest with lifecycle_stage instead of excluding)
+ - path_pattern: "**/drafts/**"
+ corpus: published
+ content_type: article
+ lifecycle_stage: draft
+ - path_pattern: "**/archive/**"
+ corpus: deployment
+ content_type: article
+ lifecycle_stage: deprecated
+ - path_pattern: "posts/**"
+ corpus: published
+ content_type: article
+ - path_pattern: "docs/decisions/**"
+ corpus: deployment
+ content_type: adr
+ - path_pattern: "docs/session-notes/**"
+ corpus: deployment
+ content_type: session_note
+ - path_pattern: "style-guides/**"
+ corpus: core_kb
+ content_type: pattern
+ - path_pattern: "docs/**"
+ corpus: deployment
+ content_type: article
+ default_corpus: deployment
+ default_content_type: article
+ default_lifecycle_stage: active

@@ -1,7 +1,7 @@
 # Strategic DDD: Capabilities, Repos, and Integration
 
-> **Version:** 1.2.0
-> **Last Updated:** 2026-02-19
+> **Version:** 1.9.0
+> **Last Updated:** 2026-02-22
 > **Status:** Draft (ADR-0009, ADR-0012)
 > **Related:** [ADR-0009](decisions/ADR-0009-strategic-tactical-ddd-refactor.md) | [ADR-0012](decisions/ADR-0012-pattern-coherence-co-equal-aggregates.md) | [Issue #122](https://github.com/semops-ai/semops-core/issues/122) | [Issue #142](https://github.com/semops-ai/semops-core/issues/142)
 
@@ -20,6 +20,7 @@ These concepts were previously captured only in GLOBAL_ARCHITECTURE.md prose. Th
 5. **Integration relationships are first-class** — rich edges with DDD integration pattern typing.
 6. **SemOps has one bounded context** with a single ubiquitous language.
 7. **Capabilities decompose into scripts** — small, focused, identifiable files rather than buried in large applications (anti-monolith). Each script is a bounded piece of executable functionality that can be replaced and audited independently.
+8. **Model depth earns intake freedom.** The domain model must be deep enough (patterns, lineage, coherence signals) that new ideas can enter without upfront classification. Don't gate ideation; audit coherence. Semantic measurement bridges the gap between "I have an idea" and "here's where it fits." (See [](https://github.com/semops-ai/semops-dx-orchestrator/issues/152))
 
 ### Repos, Bounded Contexts, and the DDD Repository Pattern
 
@@ -29,11 +30,11 @@ Three uses of "repository" coexist in SemOps — understanding the distinction i
 
 2. **Bounded Contexts** — the semantic boundaries where a particular domain model and ubiquitous language apply. SemOps has a layered context structure described in [SYSTEM_LANDSCAPE.md](SYSTEM_LANDSCAPE.md): **SemOps Core** (semops-dx-orchestrator, semops-core, semops-data) is the product — always present regardless of domain. **Domain applications** (Content: semops-publisher, semops-docs, semops-sites; Operations: semops-backoffice) are pluggable contexts that consume Core but own their own domain logic. The key boundary rule: Core never depends on a domain application. Domain applications depend on Core.
 
-3. **DDD Repository pattern** — the data access abstraction that mediates between the domain model and the transactional data layer (OLTP), responsible for retrieving and persisting Aggregates. Currently this lives in **semops-core** — the ingestion scripts, entity builders, and edge creation logic that persist domain objects to PostgreSQL. This is distinct from **semops-data**, which is the analytics/research layer (OLAP) — it reads from the domain model for coherence scoring, Research RAG, and profiling, but doesn't persist aggregates. The Repository pattern handles concerns like tenant isolation at the infrastructure layer, keeping the domain model unaware of which tenant or deployment context it operates within.
+3. **DDD Repository pattern** — the data access abstraction that mediates between the domain model and the transactional data layer (OLTP), responsible for retrieving and persisting Aggregates. Currently this lives in **semops-core** — the ingestion scripts, entity builders, and edge creation logic that persist domain objects to PostgreSQL. This is distinct from **semops-data**, which is the analytics layer (OLAP) — it reads from the domain model for coherence scoring and profiling, but doesn't persist aggregates. Research RAG and data due diligence were extracted to **semops-research** (a domain application) via [](https://github.com/semops-ai/semops-data/issues/50). The Repository pattern handles concerns like tenant isolation at the infrastructure layer, keeping the domain model unaware of which tenant or deployment context it operates within.
 
-This OLTP/OLAP distinction maps to the [Four Data System Types](https://github.com/semops-ai/semops-docs/blob/main/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/STRATEGIC_DATA/four-data-system-types.md) framework: semops-core is the **Application Data System** (transactional, DDD-governed), semops-data is the **Analytics Data System** (read-heavy, dimensional). GitHub issues, projects, and session notes are the **Enterprise Work System** (unstructured knowledge artifacts). semops-backoffice's financial pipeline is an **Enterprise Record System** (canonical truth, double-entry constraints). Each system type has different scaling physics, governance approaches, and integration patterns — understanding which type you're operating in determines which DDD patterns apply.
+This OLTP/OLAP distinction maps to the [Four Data System Types](../../semops-docs/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/STRATEGIC_DATA/four-data-system-types.md) framework: semops-core is the **Application Data System** (transactional, DDD-governed), semops-data is the **Analytics Data System** (read-heavy, dimensional). GitHub issues, projects, and session notes are the **Enterprise Work System** (unstructured knowledge artifacts). semops-backoffice's financial pipeline is an **Enterprise Record System** (canonical truth, double-entry constraints). Each system type has different scaling physics, governance approaches, and integration patterns — understanding which type you're operating in determines which DDD patterns apply.
 
-The relationship between these three is itself a [Scale Projection](https://github.com/semops-ai/semops-docs/blob/main/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/EXPLICIT_ARCHITECTURE/scale-projection.md) proof: because the mapping from domain model (capabilities, patterns) to physical boundaries (repos) is explicit and queryable in this document, changing the physical structure is an infrastructure decision. The architecture — what this document captures — remains stable.
+The relationship between these three is itself a [Scale Projection](../../semops-docs/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/EXPLICIT_ARCHITECTURE/scale-projection.md) proof: because the mapping from domain model (capabilities, patterns) to physical boundaries (repos) is explicit and queryable in this document, changing the physical structure is an infrastructure decision. The architecture — what this document captures — remains stable.
 
 ---
 
@@ -71,13 +72,50 @@ Each supporting aggregate traces to a 3P pattern that prescribes its structure.
 | **Capability** | Entity | Has identity and lifecycle. Produced by Pattern decisions, audited by Coherence. Implements multiple patterns — can't be a child of any single Pattern. Exists in the space between both core aggregates, owned by neither. |
 | **Repository** | Value Object | Identity doesn't matter — role and delivery mapping do. Repos can be reorganized (merged, split, renamed) without changing the domain model. |
 
+### Lifecycle Model
+
+All domain model entities use the same 5-state lifecycle, sourced from the [Backstage Software Catalog](../../semops-dx-orchestrator/docs/domain-patterns/backstage-software-catalog.md) `spec.lifecycle` mapping.
+
+| State | Meaning |
+|-------|---------|
+| `planned` | Identified as relevant, not yet evaluated |
+| `draft` | Being evaluated or researched for adoption |
+| `in_progress` | Actively being adopted or implemented |
+| `active` | Adopted/implemented and operational |
+| `retired` | No longer used (superseded or dropped) |
+
+**Patterns and capabilities have independent lifecycles connected by the `implements` edge.**
+
+- A pattern can be `active` while the capabilities implementing it range across all states (e.g., `ddd` is `active`; `bounded-context-extraction` which implements it is `planned`)
+- A capability can be `planned` while multiple `draft` patterns are being evaluated for it (e.g., a planned `financial-pipeline` might evaluate 3 candidate accounting patterns)
+- A pattern can be `retired` while the capability it served remains `active` via a replacement pattern
+
+**Lifecycle governance rules:**
+
+| Entity State | Coherence Signals | Orphan Detection | Ingestion | Audit Checks |
+|---|---|---|---|---|
+| `planned` | Skip — intent only | Skip — expected to be unmapped | Yes (seed for future) | Verify exists in registry |
+| `draft` | Discovery mode only | Skip — evaluation in progress | Yes | Verify pattern linkage attempted |
+| `in_progress` | Full audit | Full audit | Yes | Full consistency checks |
+| `active` | Full audit | Full audit | Yes | Full consistency checks |
+| `retired` | Skip | Skip — intentionally disconnected | Optional (historical) | Verify retirement documented |
+
+**Where lifecycle is declared:**
+
+| Entity | Authority | Field |
+|--------|-----------|-------|
+| Capability | This document (Capability Registry, Status column) | `status` |
+| Pattern | `pattern_v1.yaml` | `status` |
+| Repository | `REPOS.yaml` | `lifecycle_stage` |
+| Pattern doc | Doc header | `Status:` |
+
 ### The Semantic Optimization Loop
 
 ```text
 Pattern ──produces──→ Capability
-   ↑                      ↓
-   └──── Coherence ←──audits──┘
-         (informs)
+ ↑ ↓
+ └──── Coherence ←──audits──┘
+ (informs)
 
 Pattern pushes. Coherence aligns.
 ```
@@ -92,130 +130,45 @@ A **capability** is what the system delivers. It implements one or more Patterns
 
 ### Core Domain Capabilities
 
-These are the differentiating capabilities aligned with the [Semantic Operations Framework](https://github.com/semops-ai/semops-docs/blob/main/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/README.md).— what makes SemOps unique.
+These are the differentiating capabilities aligned with the [Semantic Operations Framework](../../semops-docs/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/README.md).— what makes SemOps unique.
 
-| ID | Capability | Implements Patterns | Delivered By |
-|----|-----------|-------------------|--------------|
-| `domain-data-model` | Domain Data Model | `ddd`, `skos`, `prov-o`, `explicit-architecture` | semops-core |
-| `internal-knowledge-access` | Internal Knowledge Access | `agentic-rag` | semops-core |
-| `coherence-scoring` | Coherence Scoring | `semantic-coherence` | semops-data, semops-core |
-| `ingestion-pipeline` | Ingestion Pipeline | `semantic-ingestion`, `etl`, `medallion-architecture`, `mlops` | semops-core |
-| `agentic-lineage` | Agentic Lineage | `agentic-lineage`, `open-lineage`, `episode-provenance` | semops-core, semops-data |
-| `research` | Research | `semantic-ingestion`, `raptor` | semops-data |
-| `pattern-management` | Pattern Management | `semantic-object-pattern`, `knowledge-organization-systems`, `pattern-language`, `explicit-architecture` | semops-core, semops-dx-orchestrator |
-| `orchestration` | Orchestration | `explicit-enterprise`, `platform-engineering`, `explicit-architecture` | semops-dx-orchestrator |
-| `context-engineering` | Context Engineering | `explicit-enterprise`, `context-engineering` | semops-dx-orchestrator |
-| `autonomous-execution` | Autonomous Execution | `scale-projection`, `ci-cd`, `containerization` | semops-dx-orchestrator |
+| ID | Capability | Status | Implements Patterns | Delivered By |
+|----|-----------|--------|-------------------|--------------|
+| `domain-data-model` | Domain Data Model | active | `ddd`, `skos`, `prov-o`, `explicit-architecture`, `edge-predicates`, `shape`, `unified-catalog` | semops-core |
+| `internal-knowledge-access` | Internal Knowledge Access | active | `agentic-rag` | semops-core |
+| `coherence-scoring` | Coherence Scoring | in_progress | `semantic-coherence` | semops-data, semops-core |
+| `ingestion-pipeline` | Ingestion Pipeline | in_progress | `semantic-ingestion`, `etl`, `medallion-architecture` | semops-core |
+| `agentic-lineage` | Agentic Lineage | planned | `agentic-lineage`, `open-lineage`, `episode-provenance`, `derivative-work-lineage` | semops-core, semops-data |
+| `pattern-management` | Pattern Management | active | `semantic-object-pattern`, `pattern-language`, `explicit-architecture`, `arc42`, `backstage-software-catalog`, `provenance-first-design` | semops-core, semops-dx-orchestrator |
+| `orchestration` | Orchestration | active | `explicit-enterprise`, `platform-engineering`, `explicit-architecture` | semops-dx-orchestrator |
+| `context-engineering` | Context Engineering | active | `explicit-enterprise` | semops-dx-orchestrator |
+| `scale-projection` | Scale Projection | in_progress | `scale-projection`, `rlhf`, `seci` | semops-publisher, semops-data, semops-dx-orchestrator |
+| `bounded-context-extraction` | Bounded Context Extraction | planned | `ddd`, `explicit-architecture` | semops-core, semops-dx-orchestrator |
+| `autonomous-execution` | Autonomous Execution | planned | `explicit-enterprise` | semops-dx-orchestrator |
 
 #### Ingestion Pipeline Detail
 
-The ingestion pipeline orchestrates multiple 3P patterns (ETL, Medallion Architecture, MLOps) into a unified flow where every semantic byproduct is a first-class knowledge artifact. The innovation (`semantic-ingestion`, 1P) is that intermediate results — classifications, detected edges, coherence scores, embeddings — are all captured and queryable, not discarded.
-
-```text
-Sources (multi-source extraction)
-┌─────────────────────────────────────────────────────────────────┐
-│  Domain patterns    Architecture specs   Research & standards   │
-│  & theory (MD)      & ADRs (markdown)    (PDF/DOCX)            │
-│                                                                 │
-│  config/sources/    GitHub repos          Docling API           │
-│  *.yaml                                                         │
-└────────────┬──────────────┬───────────────────┬─────────────────┘
-             │              │                   │
-             ▼              ▼                   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  EXTRACT — Source-specific fetchers produce raw content         │
-│  [ETL: Extract]                                                 │
-│                                                                 │
-│  • GitHubFetcher: clone/API → markdown files                   │
-│  • Docling: PDF/DOCX → structured markdown                     │
-│  • Sheets: Google Sheets API → entity dicts                    │
-│  • Frontmatter parsing (YAML metadata extraction)              │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  CLASSIFY — LLM-powered semantic classification                │
-│  [MLOps: LLM classification pipeline]                          │
-│                                                                 │
-│  • LLMClassifier (Claude): content_type, primary_concept,      │
-│    broader/narrower concepts, concept_ownership (1p/2p/3p),    │
-│    detected_edges, subject_area, summary                       │
-│  • Corpus routing: path-pattern rules → corpus + content_type  │
-│  • Lifecycle stage assignment (draft/active/stable/deprecated/archived) │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  BUILD — Entity construction                                    │
-│  [ETL: Transform] + [Medallion: Bronze→Silver enrichment]      │
-│                                                                 │
-│  • EntityBuilder: merge source defaults + derived attributes   │
-│    + LLM classification → entity dict                          │
-│  • Filespec (source URI, hash, size)                           │
-│  • Attribution (creator, rights, organization)                 │
-│  • Metadata (content_type, corpus, lifecycle_stage, etc.)      │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  LOAD — Multi-target persistence                                │
-│  [ETL: Load] + [MLOps: embedding generation]                   │
-│                                                                 │
-│  • PostgreSQL: entity upsert, edge creation                    │
-│  • Chunking: markdown → heading-aware chunks (for RAG)         │
-│  • Embeddings: OpenAI text-embedding-3-small → document_chunk  │
-│  • Qdrant: vector index for semantic search                    │
-│  • Neo4j: graph sync (pattern/entity relationships)            │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  SCORE — Coherence measurement                                  │
-│  [MLOps: MLflow experiment tracking]                           │
-│                                                                 │
-│  • Coherence scoring against pattern taxonomy                  │
-│  • MLflow: experiment tracking, model comparison               │
-│  • Feedback into pattern-management (gap detection)            │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  LINEAGE — Episode tracking (agentic-lineage capability)       │
-│                                                                 │
-│  • Every operation wrapped in LineageTracker episodes          │
-│  • Operations: ingest, classify, embed, create_edge, publish   │
-│  • Captures: inputs, context patterns, outputs, quality        │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Key innovation (semantic-ingestion):** A traditional ETL pipeline discards intermediate results. A traditional RAG pipeline only keeps chunks + embeddings. Semantic ingestion captures *every byproduct* — LLM classifications, detected edges, coherence scores, concept ownership signals — as first-class knowledge artifacts that feed back into the domain model.
+> Implementation detail relocated to [semops-core ARCHITECTURE.md § Retrieval Pipeline](ARCHITECTURE.md#retrieval-pipeline). The 1P innovation (`semantic-ingestion`) is that every byproduct — classifications, detected edges, coherence scores, embeddings — is captured and queryable, not discarded.
 
 ### Supporting Domain Capabilities
 
 These are capabilities used to create the published content that is the marketing product of SemOps. They are based on standard (3p) domain patterns. They are used as examples and showcase of the core domain as part of the SemOps project, but are not necessary to define the Semantic Operations Framework, nor are they unique to SemOps.
 
-| ID | Capability | Implements Patterns | Delivered By |
-|----|-----------|-------------------|--------------|
-| `publishing-pipeline` | Publishing Pipeline | `dam`, `dublin-core` | semops-publisher |
-| `surface-deployment` | Surface Deployment | `dam` | semops-sites |
-| `agentic-composition` | Agentic Composition | `semantic-ingestion`, `agentic-rag`, `zettelkasten` | semops-publisher |
-| `style-learning` | Style Capture | `scale-projection`, `rlhf`, `seci` | semops-publisher |
-| `synthesis-simulation` | Synthesis and Simulation | `scale-projection`, `semops-dataofiling`, `data-lineage`, `data-modeling`, `synthetic-data` | semops-data |
-| `concept-documentation` | Concept Documentation | `ddd` | semops-docs |
+| ID | Capability | Status | Implements Patterns | Delivered By |
+|----|-----------|--------|-------------------|--------------|
+| `publishing-pipeline` | Publishing Pipeline | active | `dam`, `dublin-core`, `cms`, `pim` | semops-publisher |
+| `surface-deployment` | Surface Deployment | active | `dam` | semops-sites |
+| `agentic-composition` | Agentic Composition | in_progress | `semantic-ingestion`, `agentic-rag`, `zettelkasten` | semops-publisher |
+| `style-learning` | Style Capture | in_progress | `scale-projection`, `rlhf`, `seci` | semops-publisher |
+| `corpus-meta-analysis` | Corpus Meta-Analysis | active | `semantic-ingestion`, `raptor`, `agentic-rag` | semops-research |
+| `data-due-diligence` | Data Due Diligence | active | `ddd`, `data-modeling`, `explicit-architecture`, `business-domain` | semops-research |
+| `reference-generation` | Reference Generation | active | `ddd`, `data-modeling`, `explicit-architecture`, `business-domain` | semops-research |
+| `synthesis-simulation` | Synthesis and Simulation | draft | `scale-projection`, `semops-dataofiling`, `data-lineage`, `data-modeling` | semops-data |
+| `concept-documentation` | Concept Documentation | draft | `ddd` | semops-docs |
 
-**Publishing Pipeline** consolidates content creation, MDX transformation, and style governance into a single DAM capability in semops-publisher.
+> **Bounded context candidate:** Agentic composition applied to domain-specific outputs (e.g., resume composition, consulting proposals) may warrant a second bounded context via Customer-Supplier (challenges ADR-0009 decision #6). See per-repo ARCHITECTURE.md for implementation detail.
 
-**Agentic Composition** is the general pattern of compose-from-structured-data: pattern identification → corpus building → structure definition → fit matching → agent assembly. Uses hybrid search (SQL entities + vector chunks) from `internal-knowledge-access` to treat entities and chunks as composable atoms. Resume composition is the current implementation; the pattern generalizes to any structured-data-to-composed-output workflow. Implements `zettelkasten` (3P — atomic interconnected knowledge units), `agentic-rag` (3P — hybrid retrieval), and `semantic-ingestion` (1P — ingestion creates the composable atoms).
-
-> **Bounded context candidate:** Agentic composition applied to domain-specific outputs (e.g., resume composition, [motorsport-consulting](https://github.com/semops-ai/motorsport-consulting) proposals) may warrant a **second bounded context**. These use SemOps infrastructure and patterns but serve a different domain with its own ubiquitous language (STAR bullets, job fit, industry naming for resumes; consulting proposals for motorsport). This would challenge ADR-0009 decision #6 ("SemOps has one bounded context") — the integration pattern would be Customer-Supplier, with SemOps providing composable atoms and the domain context consuming them with its own interpretation.
-
-**Surface Deployment** covers web publishing and content delivery — the semops-sites side of the DAM pipeline.
-
-> **Gap noted:** semops-sites also manages visual design governance — font management, per-brand Mermaid diagram styles, and other design system concerns with agentic elements. This likely warrants a separate `design-system` capability (3P: design systems/design tokens; possible Scale Projection 1P for the agentic progression). To be formalized in a future review.
-
-**Style Learning** (`/capture-on`, `/capture-off`, `/capture-edits`) is a HITL feedback loop that captures editorial edits with intent, building structured YAML training data. Implements **Scale Projection** (1P) — an intentional progression from manual slash-command HITL (Level 1) through structured sidecar events (Level 2) to eventual RLHF model training (Level 5). See [semops-dx-orchestrator#96](https://github.com/semops-ai/semops-dx-orchestrator/issues/96) for the Scale Projection framework.
-
-**Synthesis and Simulation** covers synthetic data generation (SDV, Faker), stack simulation (S3 → Delta Lake → Snowflake), data profiling, and scenario modeling (e.g., Plumbus product data — BOM, ERP, PIM, SKU). Implements **Scale Projection** (1P) — intentionally building from simple local scenarios to production-scale data engineering. The 3P foundations are standard data engineering patterns: data profiling, data lineage, data modeling, and AI-driven synthetic data generation.
+> **Gap noted:** `design-system` capability likely needed for semops-sites visual design governance (font management, per-brand styles). To be formalized in a future review.
 
 ---
 
@@ -225,7 +178,7 @@ The system enforces a full traceability chain from stable meaning to executable 
 
 ```text
 Pattern → Capability → Script
-(why)      (what)       (where it runs)
+(why) (what) (where it runs)
 ```
 
 - **Pattern → Capability** — every capability must trace to at least one pattern. Gaps indicate missing patterns or unjustified capabilities. Tracked in this document (Capability Registry above).
@@ -245,12 +198,13 @@ This chain is the primary audit domain of Coherence Assessment (ADR-0012 §6). E
 
 These are capabilities adopted to run various operation components for Semops, but not necessarily differentiating. Some may be promoted if unique alignment with Semops evolves.
 
-| ID | Capability | Implements Patterns | Delivered By |
-|----|-----------|-------------------|--------------|
-| `attention-management` | Attention Management | `explicit-enterprise`, `task-management` | semops-backoffice |
-| `financial-pipeline` | Financial Pipeline | `explicit-enterprise`, `accounting-system` | semops-backoffice |
+| ID | Capability | Status | Implements Patterns | Delivered By |
+|----|-----------|--------|-------------------|--------------|
+| `cap-inbox` | Inbox | active | `explicit-enterprise` | semops-backoffice |
+| `financial-pipeline` | Financial Pipeline | planned | `explicit-enterprise` | semops-backoffice |
+| `cap-voice-control` | Voice Control | draft | `explicit-enterprise` | semops-backoffice |
 
-Generic capabilities implement **`explicit-enterprise`** (1P) — the principle that enterprise systems treat architecture, data, and AI as first class, with humble tools (email, calendars, accounting) becoming agent-addressable signal streams rather than applications. Each capability's 3P pattern is the primitive enterprise equivalent it replaces. See [explicit-enterprise](https://github.com/semops-ai/semops-docs/blob/main/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/EXPLICIT_ARCHITECTURE/explicit-enterprise.md).
+Generic capabilities implement `explicit-enterprise` (1P) — humble tools become agent-addressable signal streams. See [explicit-enterprise pattern doc](../../semops-docs/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/EXPLICIT_ARCHITECTURE/explicit-enterprise.md).
 
 ---
 
@@ -260,13 +214,14 @@ A **repository** is where implementation lives. Repos deliver capabilities.
 
 | ID | Repo | Role | Delivers Capabilities |
 |----|------|------|----------------------|
-| `semops-core` | semops-core | Schema/Infrastructure | `domain-data-model`, `internal-knowledge-access`, `ingestion-pipeline`, `agentic-lineage`, `pattern-management`, `coherence-scoring` |
-| `semops-dx-orchestrator` | semops-dx-orchestrator | Platform/DX | `orchestration`, `context-engineering`, `autonomous-execution`, `pattern-management` |
-| `semops-publisher` | semops-publisher | Publishing | `publishing-pipeline`, `agentic-composition`, `style-learning` |
+| `semops-core` | semops-core | Schema/Infrastructure | `domain-data-model`, `internal-knowledge-access`, `ingestion-pipeline`, `agentic-lineage`, `pattern-management`, `coherence-scoring`, `bounded-context-extraction` |
+| `semops-dx-orchestrator` | semops-dx-orchestrator | Platform/DX | `orchestration`, `context-engineering`, `autonomous-execution`, `pattern-management`, `scale-projection`, `bounded-context-extraction` |
+| `semops-publisher` | semops-publisher | Publishing | `publishing-pipeline`, `agentic-composition`, `style-learning`, `scale-projection` |
 | `semops-docs` | semops-docs | Documents | `concept-documentation` |
-| `semops-data` | semops-data | Product/Data | `research`, `coherence-scoring`, `agentic-lineage`, `synthesis-simulation` |
+| `semops-data` | semops-data | Analytics/MLOps | `coherence-scoring`, `agentic-lineage`, `synthesis-simulation`, `scale-projection` |
+| `semops-research` | semops-research | Research/Consulting | `corpus-meta-analysis`, `data-due-diligence`, `reference-generation` |
 | `semops-sites` | semops-sites | Frontend | `surface-deployment` |
-| `semops-backoffice` | semops-backoffice | Operations | `attention-management`, `financial-pipeline` |
+| `semops-backoffice` | semops-backoffice | Operations | `cap-inbox`, `financial-pipeline`, `cap-voice-control` |
 
 ---
 
@@ -282,6 +237,7 @@ Repos interact through DDD integration patterns. These describe how repos relate
 | semops-core | semops-docs | **Shared Kernel** | UBIQUITOUS_LANGUAGE.md, Pattern/Entity schema | Bidirectional |
 | semops-dx-orchestrator | all repos | **Published Language** | GLOBAL_ARCHITECTURE.md, process docs, ADR templates | Downstream reads |
 | semops-core | semops-data | **Customer-Supplier** | Qdrant, Docling, Supabase services | Upstream provides |
+| semops-core | semops-research | **Customer-Supplier** | Ollama, Qdrant, Docling services | Upstream provides |
 | semops-core | semops-sites | **Customer-Supplier** | Supabase data, API access | Upstream provides |
 | semops-publisher | semops-core | **Conformist** | Adopts Pattern/Entity model as-is | Downstream conforms |
 | semops-docs | semops-core | **Conformist** | Adopts Pattern/Entity model as-is | Downstream conforms |
@@ -295,14 +251,277 @@ Each integration relationship should capture:
 ```yaml
 source_repo: semops-core
 target_repo: semops-publisher
-integration_pattern: shared-kernel    # DDD integration pattern (a 3P Pattern record)
+integration_pattern: shared-kernel # DDD integration pattern (a 3P Pattern record)
 shared_artifact: UBIQUITOUS_LANGUAGE.md
 direction: bidirectional
 rationale: "Both repos must agree on domain terms; changes require coordination"
-established: 2025-12-22              # When this integration was formalized
+established: 2025-12-22 # When this integration was formalized
 ```
 
 This metadata will be stored as Edge records with `integration` predicate between repository entities, typed by the DDD integration Pattern.
+
+---
+
+## Governance: Change Propagation
+
+When the domain model changes, multiple documents and systems must stay consistent. This section defines the authority chain, change types, and consistency checks.
+
+### Document Authority Chain
+
+Each data type has a single authority. All other documents derive from it.
+
+| Data | Authority | Derived By |
+|------|-----------|------------|
+| Pattern identity + lineage | `pattern_v1.yaml` (semops-dx-orchestrator) | Pattern docs, PATTERN_AUDIT.md, DB pattern table |
+| Capability registry (ID, status, patterns, repos) | This document (STRATEGIC_DDD) | REPOS.yaml, GLOBAL_ARCHITECTURE, per-repo ARCHITECTURE.md, PATTERN_AUDIT.md, DB entity/edge tables |
+| Repository registry + integration map | This document (STRATEGIC_DDD) | REPOS.yaml, GLOBAL_ARCHITECTURE, per-repo ARCHITECTURE.md |
+| Coherence signal definitions | This document (STRATEGIC_DDD) | Audit commands (`/arch-sync`, `/global-arch-sync`) |
+| Per-repo infrastructure (services, ports, env) | Per-repo `INFRASTRUCTURE.md` | GLOBAL_INFRASTRUCTURE.md, PORTS.md |
+| Process + templates | semops-dx-orchestrator docs | Per-repo docs (via templates) |
+
+**Rule:** Author changes at the authority. Then run audit commands to find and fix inconsistencies in derived documents.
+
+### Change Types
+
+Each change type defines **where to author first** (the authority) and **what consistency checks to run**.
+
+#### Pattern Adopted or Removed
+
+**Author at:** `pattern_v1.yaml` + this document (Capability Registry)
+
+1. Add/remove pattern record in `pattern_v1.yaml` (identity, lineage, docs)
+2. Create/deprecate `domain-patterns/<id>.md`
+3. Update capability "Implements Patterns" column in this document
+4. Update Coherence Signals coverage table
+5. **Run audit:** `/arch-sync` (per-repo) → `/global-arch-sync` (cross-repo)
+6. Audit checks: per-repo ARCHITECTURE.md capabilities, GLOBAL_ARCHITECTURE per-repo sections, REPOS.yaml capability descriptions, PATTERN_AUDIT.md, derives_from references in other patterns
+7. Re-run ingestion when DB is operational
+
+#### Capability Added, Modified, or Status Changed
+
+**Author at:** This document (Capability Registry + Repository Registry)
+
+1. Add/update capability row (ID, Name, Status, Implements Patterns, Delivered By)
+2. Update Repository Registry "Delivers Capabilities" column
+3. Update Coherence Signals coverage
+4. **Run audit:** `/arch-sync` (per-repo) → `/global-arch-sync` (cross-repo)
+5. Audit checks: REPOS.yaml capabilities, GLOBAL_ARCHITECTURE per-repo sections, per-repo ARCHITECTURE.md Capabilities table + status indicators, per-repo INFRASTRUCTURE.md if capability implies new services
+
+#### Repo Registered or Reorganized
+
+**Author at:** This document (Repository Registry) + `REPOS.yaml`
+
+1. Add/update repo in Repository Registry
+2. Add/update repo in `REPOS.yaml`
+3. Update Integration Patterns if relationships change
+4. **Run audit:** `/global-arch-sync`
+5. Audit checks: GLOBAL_ARCHITECTURE repo section, GLOBAL_INFRASTRUCTURE services/ports, per-repo ARCHITECTURE.md + INFRASTRUCTURE.md existence and template compliance
+
+#### Integration Pattern Changed
+
+**Author at:** This document (Integration Patterns)
+
+1. Update Integration Map table
+2. **Run audit:** `/arch-sync` (affected repos) → `/global-arch-sync`
+3. Audit checks: per-repo ARCHITECTURE.md Dependencies/Integration sections, GLOBAL_ARCHITECTURE DDD Alignment
+
+#### Unclassified Input (Principle 8)
+
+**Author at:** GitHub Issue
+
+New ideas enter the system as GitHub Issues — no upfront classification required. But pattern recognition requires enough definition to match against. The process has two phases: **scope the goal**, then **evaluate coherence**. The `/intake` command operationalizes this workflow.
+
+**Summary flow:**
+
+1. Create issue describing the idea — no classification required
+2. Scope the goal (Tier 1 in-issue, or Tier 2 Project Spec)
+3. Evaluate against coherence signals (manually or via `/intake`)
+4. Assign coherence mode: Discovery, Governance, Regression, or Novel
+5. Once classified, follow the appropriate change type above
+
+The issue is the flexible edge. No document updates until classification happens. See [Principle 8](#principles).
+
+##### Goal Scoping (Tiered)
+
+Pattern recognition requires enough definition to match against. A raw "I want better data ingestion" matches everything; a scoped "I want to extend `explicit-enterprise` to data systems architecture and build out an open source first class data system" matches `explicit-enterprise`, `open-primitive-pattern`, and Project 30's existing scope specifically.
+
+Goal scoping is the forcing function — not the coherence checklist.
+
+**Tier 1: Goal statement (in-issue)** — for small, focused ideas. The issue needs one thing:
+
+- **Outcome:** What does done look like? (1-2 sentences, free-form natural language)
+
+The Outcome statement is the input — no structured fields required. The description naturally contains entity references that the evaluation step extracts. Users reference patterns, projects, and capabilities in their natural language without being asked to fill in forms.
+
+The Outcome must be concrete enough to validate against — even if validation is human-in-the-loop. "Make the system better" has nothing to match; "extend `explicit-enterprise` to data systems architecture" gives the evaluation process entity references to extract and a territory map to present.
+
+**Entity extraction hints** — signals in the Outcome text that accelerate context loading:
+
+| Signal | Example | What it loads |
+|--------|---------|---------------|
+| Backtick references | `explicit-enterprise`, `ingestion-pipeline` | Direct pattern/capability lookup |
+| Project numbers | "project 30", "Project 18" | Project spec (outcome, AC, child issues, related patterns) |
+| Issue references | `#42`, `` | Issue body, labels, linked context |
+| Natural language | "open source data system" | KB semantic search for matching entities |
+
+Backticks are a strong hint — they signal "this is a known entity name" vs casual language. But natural language without backticks still works via KB semantic search.
+
+**Tier 2: Project Spec** — for bigger ideas. When Tier 1 reveals broader scope, promote to a `PROJECT-NN` spec (see [semops-dx-orchestrator/docs/project-specs/TEMPLATE.md](https://github.com/semops-ai/semops-dx-orchestrator/blob/main/docs/project-specs/TEMPLATE.md)) with full Outcome, Acceptance Criteria, Execution Sequence.
+
+**When to promote Tier 1 → Tier 2:**
+
+| Trigger | Why |
+|---------|-----|
+| Spans 3+ repos | Needs sequenced execution and cross-repo coordination |
+| Requires an ADR | Architectural decision needs formal recording |
+| Has dependencies on other projects | Needs dependency tracking beyond a single issue |
+| Needs multiple ordered steps | Execution Sequence required to avoid misordering |
+
+**The #152 insight applies:** Users often start narrow (a capability idea) and discover the broader pattern during goal scoping. The process supports that journey — Tier 1 scoping surfaces existing structure before you conclude novelty.
+
+##### Evaluation Process
+
+Evaluation is semantic, not structural. The agent extracts entity references from the Outcome text, expands context from authority sources, and presents the territory map. The `/intake` command operationalizes this.
+
+**Step 1: Extract entity references** from the Outcome text:
+
+| Priority | Signal | Action |
+|----------|--------|--------|
+| 1 | Backtick references (`explicit-enterprise`) | Direct lookup in `pattern_v1.yaml` or Capability Registry |
+| 2 | Project numbers ("project 30") | Load project spec from `semops-dx-orchestrator/docs/project-specs/` |
+| 3 | Issue references (`#42`, ``) | Load issue body, labels, linked context |
+| 4 | Natural language (everything else) | KB semantic search (`search_knowledge_base`) |
+
+**Step 2: Expand context** — for each extracted reference, load from authority sources:
+
+- Patterns → `pattern_v1.yaml` (status, lineage, derives_from)
+- Capabilities → Capability Registry in this document (status, implements, delivered by)
+- Projects → Project spec (outcome, acceptance criteria, child issues, related patterns)
+- Repos → `REPOS.yaml` (capabilities, integration patterns, dependencies)
+
+**Step 3: Present territory map** — show the user what already exists that relates to their input. This is the key step: most inputs connect to something existing. The map reveals the landscape before any classification happens.
+
+**Step 4: Identify delta** — what's new vs what already has coverage. Compare the input's intent against the expanded context:
+
+- Input extends an existing capability → Discovery
+- Input fills a gap (something should trace but doesn't) → Governance
+- Input conflicts with existing structure → Regression
+- Input has no matches after KB search + authority lookup → likely Novel (ask clarifying questions to confirm)
+
+**Net new is rare.** If Steps 1-3 found nothing, ask a few focused questions before concluding novelty. The domain model is broad enough that most ideas connect somewhere.
+
+##### Classification Decision Tree
+
+After the evaluation process presents the territory map, classify based on the delta:
+
+```text
+Territory map presented (entity references expanded, context loaded)
+│
+├── Input extends existing pattern/capability coverage
+│ └── Discovery (coverage increase)
+│ ├── Capability exists → link issue, update coverage tables
+│ │ Change type: none, or Capability Modified if status changes
+│ └── Pattern exists but no capability → create capability
+│ Change type: Capability Added
+│
+├── Input fills a gap (something exists without proper trace)
+│ └── Governance (coverage gap)
+│ └── Action: add missing traces (pattern→capability, capability→script)
+│ Change type: Capability Modified or Pattern Adopted
+│
+├── Input conflicts with existing structure
+│ └── Regression (would break existing coherence)
+│ └── Action: evaluate trade-off — modify input, modify architecture, or reject
+│ Change type: depends on resolution
+│
+├── Input describes infrastructure/tooling
+│ └── Route to Repo or Integration change types
+│ Change type: Repo Registered/Reorganized or Integration Pattern Changed
+│
+└── No matches after KB search + authority lookup + clarifying questions
+ └── Novel — evaluate scope:
+ ├── Narrow (single capability) → Capability Added + evaluate pattern need
+ ├── Broad (cross-cutting) → Pattern Adopted + derive capabilities
+ └── Unknown scope → stays at flexible edge, revisit at next review
+```
+
+**Key principle:** Classification does not need to happen immediately. The decision tree is a tool for when you choose to classify, not a gate on creation.
+
+##### Flexible Edge Policy
+
+The flexible edge is where unclassified inputs live. This section defines the cost and governance of that space.
+
+**What "free to exist" means:**
+
+- Issues can remain unclassified indefinitely — there is no deadline
+- Unclassified issues do NOT appear in coherence signal reports (they are not yet part of the domain model)
+- No documents update until classification happens
+- The issue label `intake:unclassified` tracks flexible-edge items
+
+**What triggers classification:**
+
+| Trigger | Mechanism |
+|---------|-----------|
+| Voluntary | Author runs `/intake` or manually classifies |
+| Review cycle | `/intake --review` surfaces unclassified issues older than 30 days for batch triage |
+| Dependency | Another issue or capability needs this input classified to proceed |
+| Coherence signal | An audit (`/arch-sync`, `/global-arch-sync`) detects something that matches an unclassified input |
+
+**Cost of the flexible edge:**
+
+The flexible edge has a carrying cost: unclassified inputs represent potential coherence improvements that aren't being captured. Discovery mode is the most valuable coherence mode because it compounds — every unclassified input that turns out to align with existing structure is a missed compounding opportunity.
+
+The review cycle (30-day surfacing) balances freedom with this carrying cost. It does not force classification — it makes the cost visible.
+
+##### Coherence Mode Assignment
+
+Once the evaluation process has been run against the scoped goal (entity extraction → context expansion → territory map → delta identification), assign the coherence mode based on what the signals indicate.
+
+| Mode | Signal Pattern | What It Means | Actions Triggered |
+|------|---------------|---------------|-------------------|
+| **Discovery** | Input matches existing pattern or capability that wasn't tracking it | Coverage increase — the domain model is more complete than we thought | Link input to existing structure; update coverage tables; close gap in Capability-Pattern or Script-Capability coverage |
+| **Governance** | Input reveals something that exists without justification (a script, service, or practice that should trace to a pattern but doesn't) | Coverage gap — something is operating outside the model | Evaluate: formalize (add pattern/capability trace) or remove (the thing shouldn't exist) |
+| **Regression** | Input conflicts with an existing pattern or would break a currently-coherent capability trace | Coherence loss — adopting this input has a cost | Quantify the cost (how many capability traces break?); evaluate trade-off; decide to adapt input, adapt architecture, or defer |
+
+**Novel inputs** (no mode assigned) stay at the flexible edge until enough context exists to classify. They are not a coherence finding — they are simply uncharted territory.
+
+**Disambiguation: Discovery vs. Governance.** Both involve gaps, but the direction differs:
+
+- **Discovery:** Something good exists that we didn't know about → formalize it (additive)
+- **Governance:** Something exists that shouldn't, or lacks justification → justify it or remove it (corrective)
+
+The test: "Is the input revealing hidden alignment (Discovery) or hidden debt (Governance)?"
+
+**Labels:**
+
+| Label | Meaning |
+|-------|---------|
+| `intake:unclassified` | At flexible edge, not yet evaluated |
+| `intake:discovery` | Evaluated — aligns with existing structure, needs formalization |
+| `intake:governance` | Evaluated — coverage gap identified |
+| `intake:regression` | Evaluated — conflicts with existing coherence |
+| `intake:novel` | Evaluated — genuinely new, needs pattern/capability decision |
+
+### Consistency Checks
+
+`/arch-sync` (per-repo) and `/global-arch-sync` (cross-repo) enforce this propagation model. Each check verifies derived documents match their authority.
+
+**Per-repo checks (`/arch-sync`):**
+
+- ARCHITECTURE.md capabilities match this document's Capability Registry (names, status, patterns)
+- ARCHITECTURE.md integration patterns match this document's Integration Map
+- INFRASTRUCTURE.md services match actual Docker/service state
+- Key Components trace to capabilities (no orphan scripts)
+
+**Cross-repo checks (`/global-arch-sync`):**
+
+- REPOS.yaml capability names match this document exactly
+- GLOBAL_ARCHITECTURE per-repo sections match this document (capabilities, status)
+- GLOBAL_INFRASTRUCTURE matches per-repo INFRASTRUCTURE.md (ports, services)
+- Every pattern in `pattern_v1.yaml` has a doc in `domain-patterns/`
+- Every pattern referenced in Capability Registry exists in `pattern_v1.yaml`
+- PATTERN_AUDIT.md is current (regenerate if stale)
+- No orphan patterns (every pattern has ≥1 capability, or is explicitly superseded/infrastructure)
 
 ---
 
@@ -316,62 +535,37 @@ Every core/supporting capability should trace to at least one Pattern. Current a
 
 | Capability | Pattern Coverage | Gap? |
 |-----------|-----------------|------|
-| `domain-data-model` | `ddd`, `skos`, `prov-o`, `explicit-architecture` (1p) | No |
-| `internal-knowledge-access` | `agentic-rag` (3p) | **New pattern needed** — `agentic-rag` |
+| `domain-data-model` | `ddd`, `skos`, `prov-o`, `explicit-architecture` (1p), `edge-predicates`, `shape`, `unified-catalog` | No |
+| `internal-knowledge-access` | `agentic-rag` (3p) | No |
 | `coherence-scoring` | `semantic-coherence` | No |
-| `ingestion-pipeline` | `semantic-ingestion` (1p), `etl` (3p), `medallion-architecture` (3p), `mlops` (3p) | **New patterns needed** — all four |
-| `agentic-lineage` | `agentic-lineage` (1p), `open-lineage` (3p), `episode-provenance` (3p) | **New patterns needed** — all three |
-| `research` | `semantic-ingestion` (1p), `raptor` (3p) | No — patterns exist or planned |
-| `pattern-management` | `semantic-object-pattern` (1p), `knowledge-organization-systems` (3p), `pattern-language` (3p), `explicit-architecture` (1p) | **New patterns needed** — all three |
-| `publishing-pipeline` | `dam` (3p), `dublin-core` (3p) | No |
-| `agentic-composition` | `semantic-ingestion` (1p), `agentic-rag` (3p), `zettelkasten` (3p) | **New pattern needed** — `zettelkasten` |
+| `ingestion-pipeline` | `semantic-ingestion` (1p), `etl` (3p), `medallion-architecture` (3p) | No |
+| `agentic-lineage` | `agentic-lineage` (1p), `open-lineage` (3p), `episode-provenance` (3p), `derivative-work-lineage` (1p) | No |
+| `corpus-meta-analysis` | `semantic-ingestion` (1p), `raptor` (3p), `agentic-rag` (3p) | No |
+| `data-due-diligence` | `ddd` (3p), `data-modeling` (3p), `explicit-architecture` (1p), `business-domain` (3p) | No |
+| `reference-generation` | `ddd` (3p), `data-modeling` (3p), `explicit-architecture` (1p), `business-domain` (3p) | No |
+| `pattern-management` | `semantic-object-pattern` (1p), `pattern-language` (3p), `explicit-architecture` (1p), `arc42` (3p), `backstage-software-catalog` (3p), `provenance-first-design` (1p) | No |
+| `publishing-pipeline` | `dam` (3p), `dublin-core` (3p), `cms` (3p), `pim` (3p) | No |
+| `agentic-composition` | `semantic-ingestion` (1p), `agentic-rag` (3p), `zettelkasten` (3p) | No |
 | `surface-deployment` | `dam` (3p) | No |
-| `style-learning` | `scale-projection` (1p), `rlhf` (3p), `seci` (3p) | **New patterns needed** — all three |
-| `synthesis-simulation` | `scale-projection` (1p), `semops-dataofiling` (3p), `data-lineage` (3p), `data-modeling` (3p), `synthetic-data` (3p) | **New patterns needed** — all four 3p |
+| `style-learning` | `scale-projection` (1p), `rlhf` (3p), `seci` (3p) | No |
+| `synthesis-simulation` | `scale-projection` (1p), `semops-dataofiling` (3p), `data-lineage` (3p), `data-modeling` (3p) | No |
 | `concept-documentation` | `ddd` (3p) | Possible — may need specific pattern |
-| `orchestration` | `explicit-enterprise` (1p), `platform-engineering` (3p), `explicit-architecture` (1p) | **New patterns needed** — both |
-| `context-engineering` | `explicit-enterprise` (1p), `context-engineering` (3p) | **New patterns needed** — both |
-| `autonomous-execution` | `scale-projection` (1p), `ci-cd` (3p), `containerization` (3p) | **New patterns needed** — `ci-cd`, `containerization` |
-| `attention-management` | `explicit-enterprise` (1p), `task-management` (3p) | **New patterns needed** — both |
-| `financial-pipeline` | `explicit-enterprise` (1p), `accounting-system` (3p) | **New patterns needed** — both |
+| `orchestration` | `explicit-enterprise` (1p), `platform-engineering` (3p), `explicit-architecture` (1p) | No |
+| `context-engineering` | `explicit-enterprise` (1p) | No — pattern exists |
+| `scale-projection` | `scale-projection` (1p), `rlhf` (3p), `seci` (3p) | No |
+| `bounded-context-extraction` | `ddd` (3p), `explicit-architecture` (1p) | No — patterns exist |
+| `autonomous-execution` | `explicit-enterprise` (1p) | No — pattern exists |
+| `cap-inbox` | `explicit-enterprise` (1p) | No |
+| `financial-pipeline` | `explicit-enterprise` (1p) | No — pattern exists |
+| `cap-voice-control` | `explicit-enterprise` (1p) | **3P pattern TBD** — speech-to-text, audio production |
 
-**Action items:**
+**Status:** All pattern registration and SKOS lineage action items completed (, #146). 37 patterns registered in `pattern_v1.yaml` v1.7.0 with `derives_from` edges. DB ingestion verified .
 
-- Register `agentic-rag` as 3p pattern. Sources: [arXiv survey](https://arxiv.org/abs/2501.09136), [IBM](https://www.ibm.com/think/topics/agentic-rag), [Microsoft Azure](https://learn.microsoft.com/en-us/azure/search/agentic-retrieval-overview), [NVIDIA](https://developer.nvidia.com/blog/traditional-rag-vs-agentic-rag-why-ai-agents-need-dynamic-knowledge-to-get-smarter/)
-- Register `agentic-lineage` as 1p concept pattern (SemOps innovation — extends OpenLineage with agent decision context and trust provenance)
-- Register `open-lineage` as 3p domain pattern (adopted standard for data flow lineage)
-- Register `episode-provenance` as 3p domain pattern (adopted pattern for episode-centric provenance tracking)
-- SKOS: `agentic-lineage` --broader--> `open-lineage`, `agentic-lineage` --broader--> `episode-provenance`
-- Register `semantic-ingestion` as 1p concept pattern (SemOps innovation — unified pipeline where every byproduct becomes a queryable knowledge signal)
-- Register `etl` as 3p domain pattern (Extract, Transform, Load)
-- Register `mlops` as 3p domain pattern (ML Operations / experiment tracking)
-- Register `medallion-architecture` as 3p domain pattern (Bronze→Silver→Gold progressive enrichment; source: [Databricks](https://www.databricks.com/glossary/medallion-architecture))
-- SKOS: `semantic-ingestion` --broader--> `etl`, `semantic-ingestion` --broader--> `medallion-architecture`, `semantic-ingestion` --broader--> `mlops`
-- Register `knowledge-organization-systems` as 3p domain pattern (LIS/NISO Z39.19 — controlled vocabularies, authority control, taxonomy management)
-- Register `pattern-language` as 3p domain pattern (Alexander 1977 / GoF 1994 — structured pattern documentation and cataloguing)
-- Register `semantic-object-pattern` as 1p concept pattern (SemOps innovation — patterns as provenance-tracked, lineage-measured, AI-agent-usable semantic objects; the aggregate root of the domain model)
-- SKOS: `semantic-object-pattern` --broader--> `knowledge-organization-systems`, `semantic-object-pattern` --broader--> `pattern-language`
-- Register `scale-projection` as 1p concept pattern (SemOps innovation — validate domain coherence by projecting architecture to scale; manual HITL processes intentionally generate structured data that becomes ML training data. See [semops-dx-orchestrator#96](https://github.com/semops-ai/semops-dx-orchestrator/issues/96))
-- Register `rlhf` as 3p domain pattern (Reinforcement Learning from Human Feedback — human corrections improve AI output)
-- Register `seci` as 3p domain pattern (Nonaka's knowledge creation model — Socialization, Externalization, Combination, Internalization; tacit→explicit knowledge conversion)
-- SKOS: `scale-projection` --broader--> `rlhf`, `scale-projection` --broader--> `seci`
-- Register `zettelkasten` as 3p domain pattern (Luhmann — atomic, interconnected knowledge notes as composable units; foundation for treating entities/chunks as composable atoms in agentic composition)
-- Register `semops-dataofiling` as 3p domain pattern (data quality measurement, statistical profiling, schema inference)
-- Register `data-lineage` as 3p domain pattern (tracking data flow and transformation provenance across systems)
-- Register `data-modeling` as 3p domain pattern (conceptual/logical/physical data modeling tools and methods)
-- Register `synthetic-data` as 3p domain pattern (AI-driven synthetic data generation — SDV, Faker, privacy-preserving test data)
-- SKOS: `scale-projection` --broader--> `semops-dataofiling`, `scale-projection` --broader--> `synthetic-data` (synthesis-simulation context)
-- Register `explicit-enterprise` as 1p concept pattern (SemOps innovation — enterprise systems that treat architecture, data, and AI as first class; humble tools become agent-addressable signal streams. See [explicit-enterprise.md](https://github.com/semops-ai/semops-docs/blob/main/docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/EXPLICIT_ARCHITECTURE/explicit-enterprise.md))
-- Register `platform-engineering` as 3p domain pattern (cross-system orchestration, aggregation, dependency management, operational intelligence)
-- Register `context-engineering` as 3p domain pattern (emerging AI pattern — designing context windows, system prompts, and agent boundaries for effective LLM operation)
-- Register `ci-cd` as 3p domain pattern (continuous integration/continuous delivery — automated testing, build, deployment pipelines)
-- Register `containerization` as 3p domain pattern (Docker, sandboxing — isolated execution environments for safe agent autonomy)
-- SKOS: `explicit-enterprise` --broader--> `platform-engineering`, `explicit-enterprise` --broader--> `context-engineering`
-- SKOS: `scale-projection` --broader--> `ci-cd`, `scale-projection` --broader--> `containerization` (autonomous-execution context)
-- Register `task-management` as 3p domain pattern (personal productivity and attention management — GTD, Eisenhower, time blocking)
-- Register `accounting-system` as 3p domain pattern (double-entry bookkeeping, ledger systems — beancount, plain-text accounting)
-- SKOS: `explicit-enterprise` --broader--> `task-management`, `explicit-enterprise` --broader--> `accounting-system`
-- **Define pattern naming convention and audit existing names.** Current names are generic abbreviations (`etl`, `mlops`, `dam`, `ddd`) or vague labels (`semantic-ingestion`) that don't convey domain meaning. Establish a convention (e.g., descriptive slug vs. acronym, when to use full name vs. abbreviation) and audit all pattern IDs for clarity and consistency.
+**Remaining:**
+
+- `cap-voice-control` — 3P pattern TBD for speech-to-text / audio production
+- `concept-documentation` — may need a specific pattern beyond `ddd`
+- **Pattern naming convention** — current IDs are generic abbreviations; establish a convention and audit for clarity
 
 ### Capability-Repo Coverage
 
@@ -418,87 +612,12 @@ See [ADR-0009](decisions/ADR-0009-strategic-tactical-ddd-refactor.md) for schema
 
 ### Sample Queries
 
-Every table in this document is parsed into the database by `ingest_architecture.py`. The following queries demonstrate what becomes queryable — these are the governance questions that `explicit-architecture` turns into SQL.
-
-**Which patterns does a capability implement?**
-
-```sql
-SELECT e.src_id AS capability, p.name AS pattern, p.provenance
-FROM edge e
-JOIN pattern p ON p.id = e.dst_id
-WHERE e.predicate = 'implements'
-  AND e.src_id = 'domain-data-model';
-```
-
-**Which capabilities lack pattern justification? (governance gap)**
-
-```sql
-SELECT capability_id, capability_name, pattern_count, repo_count
-FROM capability_coverage
-WHERE pattern_count = 0;
-```
-
-**Which patterns have no capabilities implementing them?**
-
-```sql
-SELECT pattern_id, pattern_name, capability_count, content_count
-FROM pattern_coverage
-WHERE capability_count = 0
-ORDER BY content_count DESC;
-```
-
-**Which repos deliver a given capability?**
-
-```sql
-SELECT repo_id, repo_name, repo_role, capability_name
-FROM repo_capabilities
-WHERE capability_id = 'pattern-management';
-```
-
-**How do two repos integrate?**
-
-```sql
-SELECT source_repo_id, target_repo_id, integration_pattern,
-       shared_artifact, direction
-FROM integration_map
-WHERE source_repo_id = 'semops-core'
-   OR target_repo_id = 'semops-core';
-```
-
-**What's the derived lifecycle stage of each capability?**
-
-```sql
-SELECT id, title, metadata->>'lifecycle_stage' AS lifecycle,
-       metadata->>'domain_classification' AS domain
-FROM entity
-WHERE entity_type = 'capability'
-ORDER BY metadata->>'domain_classification', title;
-```
-
-**Full traceability: pattern → capability → repo (three-layer model)**
-
-```sql
-SELECT p.name AS pattern, p.provenance,
-       c.title AS capability,
-       r.title AS repository
-FROM pattern p
-JOIN edge ei ON ei.dst_id = p.id AND ei.predicate = 'implements'
-JOIN entity c ON c.id = ei.src_id AND c.entity_type = 'capability'
-JOIN edge ed ON ed.src_id = c.id AND ed.predicate = 'delivered_by'
-JOIN entity r ON r.id = ed.dst_id AND r.entity_type = 'repository'
-WHERE p.id = 'explicit-architecture'
-ORDER BY c.title, r.title;
-```
+> Governance queries relocated to developer docs. Every table in this document is parsed into the database by `ingest_architecture.py`. Key governance questions (orphan patterns, capability coverage gaps, repo delivery, integration map, lifecycle stages, full traceability) become SQL via `capability_coverage` and `pattern_coverage` views.
 
 ---
 
 ## Evolution
 
-This document is the **source of truth** for strategic DDD concepts. When capabilities, repos, or integration patterns change:
-
-1. Update this document first
-2. Create/update corresponding entity and edge records in the schema
-3. Verify coherence signals (capability-pattern, script-capability, library-capability)
-4. Update GLOBAL_ARCHITECTURE.md DDD Alignment section
+This document is the **source of truth** for strategic DDD concepts. For change procedures, see [Governance: Change Propagation](#governance-change-propagation) above.
 
 When aggregate structure or DDD building block classifications change, update [ADR-0012](decisions/ADR-0012-pattern-coherence-co-equal-aggregates.md) and the [Domain Model](#domain-model-aggregates-and-building-blocks) section above.

@@ -43,11 +43,11 @@ These are Python processes started manually when needed.
 
 ```json
 {
-  "semops-kb": {
-    "command": "python",
-    "args": ["-m", "api.mcp_server"],
-    "cwd": "."
-  }
+ "semops-kb": {
+ "command": "python",
+ "args": ["-m", "api.mcp_server"],
+ "cwd": ""
+ }
 }
 ```
 
@@ -118,7 +118,7 @@ docker compose down -v
 | `SEMOPS_DB_PASSWORD` | Database password | Yes |
 | `OPENAI_API_KEY` | OpenAI API key for embeddings and search | Yes |
 
-Scripts load these from `.env` via `scripts/db_utils.py`. The `get_db_connection()` function is the single point of connection configuration — do not duplicate connection logic.
+Scripts load these from `.env` via `scripts/db_utils.py`. The `get_db_connection` function is the single point of connection configuration — do not duplicate connection logic.
 
 ### Supabase Infrastructure (Docker Compose internals)
 

@@ -1,0 +1,2000 @@
+# Concept-to-Pattern Mapping for semops-docs content entities
+# Generated: 2026-02-17T23:56:16.492151+00:00 by bridge_content_patterns.py --extract
+#
+# WORKFLOW:
+# 1. Review each concept below
+# 2. Set action to: map | register | dismiss
+# 3. For 'map': set pattern_id to an existing pattern
+# 4. For 'register': add a 'register' block with new pattern fields
+# 5. For 'dismiss': optionally add a note explaining why
+# 6. Change status to 'reviewed' when done
+# 7. Run: python scripts/bridge_content_patterns.py --apply
+#
+# REGISTER EXAMPLE:
+# some-concept:
+# action: register
+# register:
+# id: some-concept
+# preferred_label: "Some Concept"
+# definition: "A brief definition..."
+# provenance: "1p"
+# set_primary: true
+# ...
+#
+
+version: '1.0'
+status: pending_review
+generated_at: '2026-02-17T23:56:16.492151+00:00'
+entity_count: 49
+concept_count: 137
+matched_count: 12
+unmatched_count: 125
+concepts:
+ domain-driven-design:
+ occurrences: 28
+ max_strength: 1.0
+ predicates:
+ - derived_from
+ - related_to
+ - cites
+ - extends
+ entities:
+ - agentic-coding-at-scale
+ - ai-ready-architecture
+ - current-context
+ - data-is-organizational-challenge
+ - data-silos
+ - ddd-acl-governance-aas
+ - ddd-solves-ai-transformation
+ - discovery-through-data
+ - everything-is-data
+ - explicit-architecture
+ - foundations
+ - four-data-system-types
+ - pattern-operations
+ - patterns-and-bounded-contexts
+ - semantic-coherence-measurement
+ - semantic-compression
+ - semantic-flywheel
+ - semantic-operations-framework
+ - semantic-optimization
+ - semantic-optimization-implementation
+ - semops-aggregate-root
+ - stable-core-flexible-edge
+ - strategic-data
+ - explicit-architecture
+ - explicit-enterprise
+ - what-is-understanding
+ - why-structure-matters
+ - wisdom-aggregate-root
+ sample_rationale: ACL is explicitly defined as a pattern from Eric Evans' Domain-Driven
+ Design (2003)
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-coherence:
+ occurrences: 20
+ max_strength: 0.95
+ predicates:
+ - related_to
+ - extends
+ - derived_from
+ entities:
+ - agentic-coding-at-scale
+ - data-silos
+ - ddd-acl-governance-aas
+ - ddd-solves-ai-transformation
+ - everything-is-data
+ - foundations
+ - foundations-cognition
+ - foundations-semantic
+ - four-data-system-types
+ - pattern-operations
+ - patterns
+ - patterns-and-bounded-contexts
+ - semantic-coherence-measurement
+ - semantic-compression
+ - semantic-flywheel
+ - semantic-operations-framework
+ - semantic-optimization
+ - semantic-optimization-implementation
+ - stable-core-flexible-edge
+ - explicit-enterprise
+ sample_rationale: This document operationalizes the semantic coherence concept
+ with specific measurement methodology
+ action: map
+ pattern_id: semantic-coherence
+ match_type: exact
+ pattern_label: Semantic Coherence
+ add_as_alt_label: false
+ set_primary: false
+ semantic-operations:
+ occurrences: 14
+ max_strength: 0.95
+ predicates:
+ - extends
+ - related_to
+ - derived_from
+ entities:
+ - agentic-coding-at-scale
+ - ai-transformation
+ - data-shapes
+ - dikw-theory-comparison
+ - domain-driven-design
+ - everything-is-data
+ - four-data-system-types
+ - pattern-operations
+ - patterns
+ - patterns-and-bounded-contexts
+ - semantic-coherence
+ - semops-aggregate-root
+ - strategic-data
+ - wisdom-aggregate-root
+ sample_rationale: Document explicitly frames agentic coding at scale as a lens
+ for understanding Semantic Operations
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-funnel:
+ occurrences: 13
+ max_strength: 0.95
+ predicates:
+ - related_to
+ - derived_from
+ - extends
+ entities:
+ - dikw-theory-comparison
+ - domain-driven-design
+ - explicit-architecture
+ - foundations-semantic
+ - patterns
+ - physics-of-data
+ - semantic-coherence
+ - semantic-optimization
+ - semops-aggregate-root
+ - strategic-data
+ - explicit-architecture
+ - what-is-understanding
+ - wisdom-aggregate-root
+ sample_rationale: Strategic Data explicitly maps to and operationalizes the D→I
+ transformation layer of the Semantic Funnel framework
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dimensional-modeling:
+ occurrences: 8
+ max_strength: 0.9
+ predicates:
+ - derived_from
+ - related_to
+ - cites
+ - extends
+ entities:
+ - business-analytics-patterns
+ - data-is-organizational-challenge
+ - data-roles-evolution
+ - foundations-data
+ - physics-of-data
+ - semantic-compression
+ - semantic-operations-framework
+ - why-structure-matters
+ sample_rationale: The framework is fundamentally built on Kimball's dimensional
+ modeling methodology including star schemas, conformed dimensions, and fact
+ table patterns
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ four-data-system-types:
+ occurrences: 5
+ max_strength: 0.9
+ predicates:
+ - related_to
+ - extends
+ entities:
+ - data-is-organizational-challenge
+ - data-silos
+ - data-systems-essentials
+ - everything-is-data
+ - explicit-enterprise
+ sample_rationale: Document explicitly references and builds upon the four data
+ system types framework for understanding system mix by domain
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ strategic-data:
+ occurrences: 5
+ max_strength: 0.95
+ predicates:
+ - related_to
+ - extends
+ entities:
+ - data-silos
+ - everything-is-data
+ - semantic-optimization
+ - explicit-architecture
+ - what-is-understanding
+ sample_rationale: Explicitly positioned as expanding Strategic Data framework
+ to AI-era scope; document states it amplifies Strategic Data principles
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dikw-hierarchy:
+ occurrences: 5
+ max_strength: 0.95
+ predicates:
+ - extends
+ - derived_from
+ - related_to
+ entities:
+ - dikw-theory-comparison
+ - foundations
+ - semantic-funnel
+ - what-is-understanding
+ - wisdom-aggregate-root
+ sample_rationale: Document provides detailed academic background and comparison
+ supporting the main DIKW framework treatment
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ what-is-understanding:
+ occurrences: 5
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - dikw-theory-comparison
+ - domain-driven-design
+ - explicit-architecture
+ - semantic-funnel
+ - explicit-architecture
+ sample_rationale: Directly addresses the nature of understanding and links to
+ deep dive on the topic
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dikw-theory-comparison:
+ occurrences: 5
+ max_strength: 0.8
+ predicates:
+ - related_to
+ - cites
+ entities:
+ - foundations-cognition
+ - foundations-semantic
+ - semantic-funnel
+ - semantic-optimization-implementation
+ - strategic-data
+ sample_rationale: Document references DIKW model to explain the physics of Data
+ to Information transformation
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ai-ready-architecture:
+ occurrences: 4
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - agentic-coding-at-scale
+ - semantic-flywheel
+ - semantic-operations-framework
+ - stable-core-flexible-edge
+ sample_rationale: AI-ready architecture is a prerequisite pattern that enables
+ the flywheel mechanism
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ubiquitous-language:
+ occurrences: 4
+ max_strength: 0.7
+ predicates:
+ - extends
+ - related_to
+ entities:
+ - ai-ready-architecture
+ - ddd-acl-governance-aas
+ - pattern-operations
+ - semantic-coherence
+ sample_rationale: The self-documenting pillar directly builds upon the ubiquitous
+ language concept from DDD for code clarity
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-governance:
+ occurrences: 4
+ max_strength: 0.85
+ predicates:
+ - related_to
+ - extends
+ entities:
+ - analytics-systems-evolution
+ - governance-as-strategy
+ - silent-analytics-failure
+ - three-five-seven-data-systems
+ sample_rationale: The document identifies lack of governance (metric catalogs,
+ data lineage, data contracts, validation tests, semantic layers) as a root cause
+ of silent analytics failures
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ surface-analysis:
+ occurrences: 4
+ max_strength: 0.85
+ predicates:
+ - related_to
+ - extends
+ entities:
+ - business-analytics-patterns
+ - data-silos
+ - data-systems-essentials
+ - strategic-data
+ sample_rationale: Surface Analysis is presented as a key analytical technique
+ within the Strategic Data framework
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ bounded-context:
+ occurrences: 4
+ max_strength: 0.95
+ predicates:
+ - related_to
+ - derived_from
+ entities:
+ - ddd-acl-governance-aas
+ - patterns
+ - semops-aggregate-root
+ - wisdom-aggregate-root
+ sample_rationale: ACL sits between bounded contexts to mediate their communication
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-optimization:
+ occurrences: 4
+ max_strength: 0.9
+ predicates:
+ - related_to
+ - extends
+ entities:
+ - foundations
+ - semantic-flywheel
+ - semantic-optimization-implementation
+ - explicit-architecture
+ sample_rationale: Provides concrete technical implementation of the abstract semantic
+ optimization concept
+ action: map
+ pattern_id: semantic-optimization
+ match_type: exact
+ pattern_label: Semantic Optimization
+ add_as_alt_label: false
+ set_primary: false
+ explicit-architecture:
+ occurrences: 4
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - foundations
+ - patterns
+ - semantic-flywheel
+ - semantic-optimization
+ sample_rationale: Explicit Architecture is explicitly identified as a pillar
+ providing structural rules, bounded contexts, and scaffolding for semantic optimization
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ stable-core-flexible-edge:
+ occurrences: 3
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - agentic-coding-at-scale
+ - data-shapes
+ - ddd-solves-ai-transformation
+ sample_rationale: Document explicitly states data shapes implement the flexible
+ edge of the stable-core-flexible-edge principle
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-layer:
+ occurrences: 3
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - analytics-systems-evolution
+ - data-roles-evolution
+ - silent-analytics-failure
+ sample_rationale: The central thesis identifies the semantic layer gap as the
+ key problem created by data role fragmentation
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ event-driven-architecture:
+ occurrences: 3
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - business-analytics-patterns
+ - domain-driven-design
+ - explicit-architecture
+ sample_rationale: Product analytics section describes event-based data models
+ and event streaming patterns using Kafka and event schema patterns
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ prov-o:
+ occurrences: 3
+ max_strength: 0.8
+ predicates:
+ - cites
+ entities:
+ - data-shapes
+ - foundations-data
+ - semantic-optimization-implementation
+ sample_rationale: Explicitly references W3C PROV model for lineage and provenance
+ action: map
+ pattern_id: prov-o
+ match_type: exact
+ pattern_label: PROV-O (Provenance Ontology)
+ add_as_alt_label: false
+ set_primary: false
+ governance-as-strategy:
+ occurrences: 3
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - data-silos
+ - ddd-solves-ai-transformation
+ - explicit-enterprise
+ sample_rationale: Document references governance requirements and implements git-as-governance
+ pattern
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-drift:
+ occurrences: 3
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - domain-driven-design
+ - patterns-and-bounded-contexts
+ - semantic-coherence
+ sample_rationale: Stability component directly references semantic-drift.md for
+ detailed analysis; drift is the failure mode coherence guards against
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ schema-on-read:
+ occurrences: 3
+ max_strength: 0.85
+ predicates:
+ - related_to
+ - contradicts
+ entities:
+ - physics-of-data
+ - three-forces
+ - why-structure-matters
+ sample_rationale: Directly challenges schema-on-read as a free lunch, arguing
+ it merely defers structure costs
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-lineage:
+ occurrences: 3
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - semantic-coherence-measurement
+ - silent-analytics-failure
+ - surface-analysis
+ sample_rationale: Surface is defined as Source + Lineage context; lineage is fundamental
+ to distinguishing surfaces from sources
+ action: map
+ pattern_id: data-lineage
+ match_type: exact
+ pattern_label: Data Lineage
+ add_as_alt_label: false
+ set_primary: false
+ runtime-emergence:
+ occurrences: 2
+ max_strength: 0.75
+ predicates:
+ - extends
+ - related_to
+ entities:
+ - ai-transformation
+ - what-is-understanding
+ sample_rationale: Explicitly parallels the concept that understanding, like organizational
+ transformation, cannot be pre-computed but emerges through active interpretation
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ relational-model:
+ occurrences: 2
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - analytics-systems-evolution
+ - foundations-data
+ sample_rationale: Extensively references Codd's 1970 relational model as mathematical
+ foundation
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ delta-lake:
+ occurrences: 2
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - analytics-systems-evolution
+ - three-five-seven-data-systems
+ sample_rationale: Delta Lake is specifically mentioned as a table layer technology
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-warehouse:
+ occurrences: 2
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - data-collection-el-methods
+ - three-forces
+ sample_rationale: Warehouses with batch ETL are recommended for low velocity,
+ structured data
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ fundamentals-of-data-engineering:
+ occurrences: 2
+ max_strength: 0.95
+ predicates:
+ - derived_from
+ entities:
+ - data-systems-essentials
+ - three-five-seven-data-systems
+ sample_rationale: Explicitly adapted from Reis & Housley (2022) Fundamentals of
+ Data Engineering book
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ three-forces:
+ occurrences: 2
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - data-systems-essentials
+ - physics-of-data
+ sample_rationale: Three Forces is presented as a core lens with a dedicated document
+ for detailed patterns
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ddd-acl-governance-aas:
+ occurrences: 2
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - explicit-architecture
+ - four-data-system-types
+ sample_rationale: Cites Anti-Corruption Layers as essential for translating between
+ systems with different implicit contexts
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ cap-theorem:
+ occurrences: 2
+ max_strength: 0.85
+ predicates:
+ - cites
+ - related_to
+ entities:
+ - foundations-data
+ - three-forces
+ sample_rationale: References Brewer's CAP theorem as immutable distributed systems
+ constraint
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-quality:
+ occurrences: 2
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - foundations-data
+ - silent-analytics-failure
+ sample_rationale: The document contrasts silent analytics failure with traditional
+ data quality approaches, arguing that syntactic checks miss semantic errors
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ patterns:
+ occurrences: 2
+ max_strength: 0.95
+ predicates:
+ - extends
+ entities:
+ - pattern-operations
+ - semantic-optimization
+ sample_rationale: Document explicitly states it operationalizes pattern definitions
+ from the Patterns document
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-compression:
+ occurrences: 2
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - patterns
+ - semantic-optimization-implementation
+ sample_rationale: Semantic compression is identified as the core mechanism enabling
+ patterns to operate at the right granularity
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ abstractions:
+ occurrences: 2
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - semantic-compression
+ - stable-core-flexible-edge
+ sample_rationale: Entity and metric abstractions are presented as specific 1p
+ implementations of semantic compression
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ apache-iceberg:
+ occurrences: 2
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - three-five-seven-data-systems
+ - three-forces
+ sample_rationale: Iceberg is specifically mentioned as a table layer technology
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ explicit-enterprise:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - agentic-coding-at-scale
+ sample_rationale: Explicitly cross-references Explicit Enterprise as a related
+ pattern
+ action: map
+ pattern_id: explicit-enterprise
+ match_type: exact
+ pattern_label: Explicit Enterprise
+ add_as_alt_label: false
+ set_primary: false
+ hard-problem-of-ai:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - agentic-coding-at-scale
+ sample_rationale: Directly quotes and builds upon the Hard Problem of AI thesis
+ about maintaining shared meaning
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ information-hiding:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - cites
+ entities:
+ - agentic-coding-at-scale
+ sample_rationale: Cites Parnas (1972) on information hiding as foundational CS
+ principle being applied at organizational scale
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ clean-code:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - ai-ready-architecture
+ sample_rationale: Core thesis is that clean code principles for humans directly
+ translate to AI-optimized code
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ type-safety:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - ai-ready-architecture
+ sample_rationale: Explicit typing is presented as a key mechanism for achieving
+ the 'explicit over implicit' pillar
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ the-hard-problem-ai:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - extends
+ entities:
+ - ai-transformation
+ sample_rationale: Document positions 'The Hard Problem of AI Transformation' as
+ a semantic operations reframing of this problem
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ regression-paradox:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - extends
+ entities:
+ - ai-transformation
+ sample_rationale: Listed as a concept that provides new insights through semantic
+ operations lens
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-decoherence:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - extends
+ entities:
+ - ai-transformation
+ sample_rationale: Listed as a concept that provides new insights through semantic
+ operations lens
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ sociotechnical-systems:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - derived_from
+ entities:
+ - ai-transformation
+ sample_rationale: Document cites violation of sociotechnical systems principles
+ as a core issue in AI transformation failures
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ raptor-pattern:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - cites
+ entities:
+ - ai-transformation
+ sample_rationale: Document describes using RAPTOR-inspired synthesis for the meta-analysis
+ methodology
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ rag-architecture:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - related_to
+ entities:
+ - analytics-systems-evolution
+ sample_rationale: Document discusses how RAG systems in the LLM era require clear
+ semantic layers to function effectively
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ etl-elt-patterns:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - related_to
+ entities:
+ - business-analytics-patterns
+ sample_rationale: References ETL/ELT pipelines and Change Data Capture as common
+ data source patterns across analytics disciplines
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ai-transformation-problem:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - current-context
+ sample_rationale: Explicitly mentioned as the first current-context research effort
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ raptor-research-tools:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - current-context
+ sample_rationale: Raptor is mentioned as the AI-led research tool for knowledge
+ ingestion
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ change-data-capture:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - data-collection-el-methods
+ sample_rationale: CDC is identified as a major differentiator between EL approaches
+ and receives detailed coverage as a decision factor
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ schema-inference:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - data-collection-el-methods
+ sample_rationale: Schema inference and evolution policies are discussed as key
+ considerations, particularly for DLT's handling of nested data
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ product-analytics:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - related_to
+ entities:
+ - data-collection-el-methods
+ sample_rationale: Product analytics is cited as a primary business use case for
+ extracting operational database data
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ customer-360:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - related_to
+ entities:
+ - data-collection-el-methods
+ sample_rationale: Customer 360 views are identified as a primary business objective
+ driving cross-functional data extraction from SaaS tools
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-roles-evolution:
+ occurrences: 1
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - data-is-organizational-challenge
+ sample_rationale: Document explicitly cites this as context for understanding
+ role fragmentation and the dissolved ownership problem
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ analytics-systems-evolution:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - data-is-organizational-challenge
+ sample_rationale: Document cites this for historical context on skills gaps and
+ leadership comprehension issues
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-integrity:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - data-is-organizational-challenge
+ sample_rationale: Central theme that no role owns semantic integrity across systems
+ is a key organizational failure mode identified
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ analytics-engineering:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - data-roles-evolution
+ sample_rationale: Analytics Engineer role is presented as the tactical correction
+ that emerged to fill the semantic modeling gap
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dbt:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - data-roles-evolution
+ sample_rationale: dbt is cited as the defining tool for the Analytics Engineer
+ role that emerged to address the gap
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ oltp-vs-olap:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - data-roles-evolution
+ sample_rationale: Document identifies the conflation of application database design
+ (OLTP) with analytical data modeling (OLAP) as a critical structural flaw
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ big-data-movement:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - derived_from
+ entities:
+ - data-roles-evolution
+ sample_rationale: The 'store first, understand later' paradigm from Hadoop era
+ is cited as a contributing factor to the loss of modeling discipline
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ shacl:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - derived_from
+ entities:
+ - data-shapes
+ sample_rationale: Explicitly states derivation from W3C SHACL as primary standard
+ for shapes concept
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ json-schema:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - derived_from
+ entities:
+ - data-shapes
+ sample_rationale: JSON Schema is cited as a source and used for implementation
+ of shape validation
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ provenance-first-design:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - data-shapes
+ sample_rationale: Uses provenance-first-design as an example pattern that would
+ have a defined shape
+ action: map
+ pattern_id: provenance-first-design
+ match_type: exact
+ pattern_label: Provenance-First Design (1P/2P/3P)
+ add_as_alt_label: false
+ set_primary: false
+ three-five-seven-data-systems:
+ occurrences: 1
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - data-systems-essentials
+ sample_rationale: Three Five Seven is a central organizing framework with dedicated
+ deep-dive document
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ context-mapping:
+ occurrences: 1
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - ddd-acl-governance-aas
+ sample_rationale: ACL is compared against other context mapping patterns like
+ Conformist, Customer/Supplier, Shared Kernel, and Open Host Service
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ patterns-and-bounded-contexts:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - ddd-solves-ai-transformation
+ sample_rationale: Directly references patterns and bounded contexts as solution
+ to paradigmatic lock-in
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ discovery-through-data:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - ddd-solves-ai-transformation
+ sample_rationale: References as related approach to measurement infrastructure
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ackoff-dikw-1989:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - dikw-theory-comparison
+ sample_rationale: Primary source analysis of Ackoff's 1989 formulation with Understanding
+ as 5th tier
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ bellinger-dikw-2004:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - dikw-theory-comparison
+ sample_rationale: Primary source analysis of Bellinger's formulation with Understanding
+ as process
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ process-mining:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - discovery-through-data
+ sample_rationale: Process mining is presented as one of the two core lenses (behavioral
+ lens) for discovering organizational truth
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ agentic-lineage:
+ occurrences: 1
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - discovery-through-data
+ sample_rationale: Explicitly cited as a complementary tool that discovers 'what
+ actually is' through event logs and lineage tracking
+ action: map
+ pattern_id: agentic-lineage
+ match_type: exact
+ pattern_label: Agentic Lineage
+ add_as_alt_label: false
+ set_primary: false
+ stack-simulation:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - discovery-through-data
+ sample_rationale: Explicitly referenced as providing simulation infrastructure
+ for synthetic data generation and lineage events
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ model-everything:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - derived_from
+ entities:
+ - discovery-through-data
+ sample_rationale: The strategic lens is named 'Model Everything' and represents
+ a core pillar of this framework
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ explicit-architecture:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - domain-driven-design
+ sample_rationale: Document references explicit architecture for guidance on layering
+ specialized approaches
+ action: map
+ pattern_id: explicit-architecture
+ match_type: exact
+ pattern_label: Explicit Architecture
+ add_as_alt_label: false
+ set_primary: false
+ data-mesh:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - domain-driven-design
+ sample_rationale: Document describes Data Mesh as requiring DDD bounded contexts
+ as prerequisite
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ eric-evans-ddd:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - domain-driven-design
+ sample_rationale: Document explicitly cites Eric Evans (2003) as the originator
+ of DDD
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ source-up-data-capture:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - everything-is-data
+ sample_rationale: References source-up thinking as a core principle that now applies
+ to all semantic artifacts
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ systems-theory:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - derived_from
+ entities:
+ - foundations
+ sample_rationale: Derives semantic optimization concepts from cybernetics and
+ systems theory principles
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ viable-systems-model:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - cites
+ entities:
+ - foundations
+ sample_rationale: References Beer's Viable Systems Model as theoretical grounding
+ for organizational semantics
+ action: map
+ pattern_id: viable-systems-model
+ match_type: exact
+ pattern_label: Viable Systems Model
+ add_as_alt_label: false
+ set_primary: false
+ sociotechnical-systems-theory:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - foundations-cognition
+ sample_rationale: Documents Trist & Bamforth and Emery & Trist's foundational
+ STS work
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ constructivism:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - cites
+ entities:
+ - foundations-cognition
+ sample_rationale: Documents Piaget and Vygotsky's foundational work on schema
+ theory and constructivism
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ statistical-learning-theory:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - cites
+ entities:
+ - foundations-cognition
+ sample_rationale: Documents Vapnik's foundational work on statistical learning
+ theory
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ entity-relationship-model:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - foundations-data
+ sample_rationale: References Chen's 1976 ER model as conceptual-to-logical bridge
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dama-dmbok:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - cites
+ entities:
+ - foundations-data
+ sample_rationale: References DAMA-DMBOK framework for data governance
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ feature-stores:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - foundations-data
+ sample_rationale: Mentions feature stores as derived from relational and dimensional
+ foundations
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ owl-web-ontology-language:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - foundations-semantic
+ sample_rationale: Formal Ontology Engineering section directly cites W3C OWL as
+ a key standard
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ rdf:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - cites
+ entities:
+ - foundations-semantic
+ sample_rationale: Formal Ontology Engineering section directly cites RDF as a
+ foundational standard
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ basic-formal-ontology:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - cites
+ entities:
+ - foundations-semantic
+ sample_rationale: Knowledge Representation section cites Barry Smith's Basic Formal
+ Ontology as a key contribution
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-silos:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - four-data-system-types
+ sample_rationale: Directly references data-silos concept to explain that application
+ and analytics data are the same data with different physics
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ prov-o-ontology:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - cites
+ entities:
+ - governance-as-strategy
+ sample_rationale: Explicitly references W3C PROV-O as the standard ontology for
+ provenance modeling
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ fair-semops-datainciples:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - cites
+ entities:
+ - governance-as-strategy
+ sample_rationale: References FAIR principles as alignment context for provenance
+ practices
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ openlineage:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - cites
+ entities:
+ - governance-as-strategy
+ sample_rationale: Identifies OpenLineage as the open standard for pipeline lineage
+ metadata
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ knowledge-operations:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - governance-as-strategy
+ sample_rationale: Explicitly positions provenance and lineage as foundational
+ principles for Knowledge Operations
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ai-first-company:
+ occurrences: 1
+ max_strength: 0.85
+ predicates:
+ - related_to
+ entities:
+ - governance-as-strategy
+ sample_rationale: Frames the strategic value of these concepts specifically for
+ AI-first organizational contexts
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ pattern-operations:
+ occurrences: 1
+ max_strength: 0.85
+ predicates:
+ - extends
+ entities:
+ - patterns
+ sample_rationale: Pattern operations are described as the mechanism for pattern
+ evolution and lineage tracking
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ thermodynamics:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - derived_from
+ entities:
+ - physics-of-data
+ sample_rationale: The framework explicitly applies thermodynamic concepts like
+ entropy, energy bounds, and physical constraints to data systems
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-contracts:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - semantic-coherence
+ sample_rationale: Document identifies semantic contracts as the mechanism for
+ formalizing shared meaning in the I→K transition
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ financial-audit-methodology:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - derived_from
+ entities:
+ - semantic-coherence-measurement
+ sample_rationale: Explicitly uses accounting close/reconciliation as the analogical
+ foundation for semantic audit
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ rag-pipeline-architecture:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - related_to
+ entities:
+ - semantic-coherence-measurement
+ sample_rationale: Technical implementation section references RAG pipeline for
+ operationalizing the measurement
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ information-theory:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - extends
+ entities:
+ - semantic-compression
+ sample_rationale: Document explicitly states it extends foundation from information
+ theory and NLP semantic compression concepts
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ everything-is-github:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - semantic-compression
+ sample_rationale: Code repositories are presented as semantic functions that compress
+ organizational knowledge
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ model-driven-development:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - derived_from
+ entities:
+ - semantic-flywheel
+ sample_rationale: Explicitly stated as derived from MDD, with LLMs replacing traditional
+ code generators
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ agent-based-modeling:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - derived_from
+ entities:
+ - semantic-funnel
+ sample_rationale: The OAR model draws guidance from agent-based modeling concepts
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ business-rules:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - derived_from
+ entities:
+ - semantic-funnel
+ sample_rationale: The OAR model incorporates business rules concepts as part of
+ its foundation
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ adr-0001:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - related_to
+ entities:
+ - semantic-funnel
+ sample_rationale: Document was renamed from 'DIKW Mental Model' per ADR-0001
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dikw-pyramid:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - extends
+ entities:
+ - semantic-operations-framework
+ sample_rationale: The semantic funnel model extends the traditional Data-Information-Knowledge-Wisdom
+ hierarchy with transformation requirements
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ provenance-lineage-semops:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - semantic-optimization
+ sample_rationale: References provenance and lineage as properties of structured
+ semantic objects from Strategic Data
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ skos:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - cites
+ entities:
+ - semantic-optimization-implementation
+ sample_rationale: Adopts SKOS as the standard pattern for concept relationships
+ action: map
+ pattern_id: skos
+ match_type: exact
+ pattern_label: SKOS (Simple Knowledge Organization System)
+ add_as_alt_label: false
+ set_primary: false
+ concept-entity:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - semops-aggregate-root
+ sample_rationale: In SemOps, Concept is identified as the aggregate root for knowledge
+ artifacts
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ dikw:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - semops-aggregate-root
+ sample_rationale: Document maps aggregate root behavior across DIKW levels from
+ Data to Wisdom
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ metric-definition:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - silent-analytics-failure
+ sample_rationale: A core theme is that stakeholders request visualizations rather
+ than metric definitions, and the semantic meaning of metrics is never validated
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ observability:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - silent-analytics-failure
+ sample_rationale: The document draws contrast between software engineering's mature
+ observability practices and the lack of equivalent disciplines for analytics
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ hexagonal-architecture:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - extends
+ entities:
+ - stable-core-flexible-edge
+ sample_rationale: Builds on Cockburn's ports and adapters pattern, applying it
+ specifically to semantic architecture
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ clean-architecture:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - extends
+ entities:
+ - stable-core-flexible-edge
+ sample_rationale: Adapts Martin's dependency rule concept for semantic systems
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-shapes:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - stable-core-flexible-edge
+ sample_rationale: Data shapes are explicitly described as the technical implementation
+ of the flexible edge
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ anti-corruption-layer:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - stable-core-flexible-edge
+ sample_rationale: ACLs are described as the enforcement mechanism for the edge
+ boundary
+ action: map
+ pattern_id: anti-corruption-layer
+ match_type: exact
+ pattern_label: Anti-Corruption Layer
+ add_as_alt_label: false
+ set_primary: false
+ reis-housley-data-engineering:
+ occurrences: 1
+ max_strength: 0.5
+ predicates:
+ - cites
+ entities:
+ - strategic-data
+ sample_rationale: Explicitly adapts the components, lifecycle, and functions framework
+ from Reis & Housley
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ ga4-platform-device-dimensions:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - extends
+ entities:
+ - surface-analysis
+ sample_rationale: Explicitly extends the GA4 platform/device surface definition
+ to encompass all data boundaries beyond digital analytics
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ value-object:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - surface-analysis
+ sample_rationale: Source is explicitly described as a value object pattern from
+ DDD
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ data-world:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - surface-analysis
+ sample_rationale: Surfaces are positioned within data worlds (OLTP, OLAP, etc.)
+ as part of their lineage context
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-boundary:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - surface-analysis
+ sample_rationale: Framework emphasizes that different surfaces represent different
+ meaning-systems and semantic boundaries
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-operations-framework:
+ occurrences: 1
+ max_strength: 0.95
+ predicates:
+ - extends
+ entities:
+ - explicit-architecture
+ sample_rationale: Explicitly identified as the second pillar of the Semantic Operations
+ Framework
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semops-framework:
+ occurrences: 1
+ max_strength: 0.95
+ predicates:
+ - extends
+ entities:
+ - explicit-enterprise
+ sample_rationale: Explicit Enterprise is presented as a core component that enables
+ the full SemOps Framework
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ everything-is-data:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - explicit-enterprise
+ sample_rationale: Document states this principle is a core force enabling Symbiotic
+ Enterprise convergence
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ agentic-enterprise:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - contradicts
+ entities:
+ - explicit-enterprise
+ sample_rationale: Critiques consensus agentic enterprise definition as describing
+ agent capabilities without addressing enterprise readiness
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ lakehouse-architecture:
+ occurrences: 1
+ max_strength: 0.8
+ predicates:
+ - related_to
+ entities:
+ - three-five-seven-data-systems
+ sample_rationale: Framework describes modern lakehouse patterns including table
+ formats like Delta Lake and Iceberg
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ medallion-architecture:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - three-five-seven-data-systems
+ sample_rationale: The lifecycle stages (raw to transformed to served) align with
+ medallion architecture patterns
+ action: map
+ pattern_id: medallion-architecture
+ match_type: exact
+ pattern_label: Medallion Architecture (Bronze/Silver/Gold)
+ add_as_alt_label: false
+ set_primary: false
+ data-lake:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - three-forces
+ sample_rationale: Data lakes are presented as an architectural response to high
+ velocity and variable structure forces
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ streaming-architecture:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - three-forces
+ sample_rationale: Streaming platforms like Kafka are positioned as responses to
+ high velocity and low latency requirements
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ wisdom-aggregate-root:
+ occurrences: 1
+ max_strength: 0.7
+ predicates:
+ - related_to
+ entities:
+ - what-is-understanding
+ sample_rationale: Connects wisdom as meta-rules that constrain other rules, referencing
+ the aggregate root pattern
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-abstractions:
+ occurrences: 1
+ max_strength: 0.9
+ predicates:
+ - related_to
+ entities:
+ - why-structure-matters
+ sample_rationale: Document explicitly references semantic abstractions as the
+ mechanism for entity and metric meaning
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-layers:
+ occurrences: 1
+ max_strength: 0.75
+ predicates:
+ - related_to
+ entities:
+ - why-structure-matters
+ sample_rationale: Discusses semantic layers as attempts to restore lost structure
+ in modern data systems
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ rag-systems:
+ occurrences: 1
+ max_strength: 0.6
+ predicates:
+ - related_to
+ entities:
+ - why-structure-matters
+ sample_rationale: Argues RAG systems require queryable, structured data to function
+ correctly
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''
+ semantic-alignment:
+ occurrences: 1
+ max_strength: 0.55
+ predicates:
+ - related_to
+ entities:
+ - wisdom-aggregate-root
+ sample_rationale: Wisdom is measured indirectly via Semantic Alignment as mentioned
+ in the document
+ action: review
+ pattern_id: null
+ match_type: none
+ note: ''

@@ -30,20 +30,20 @@ SemOps implements three key hypotheses:
 
 ```
 semops-dx-orchestrator [PLATFORM/DX]
-        │
-        │  Owns: Process (how we work)
-        │
-        ▼
-semops-core [SCHEMA/INFRASTRUCTURE]  ← This repo
-        │
-        │  Owns: Model (what we know)
-        │  - Schema definitions
-        │  - Knowledge graph
-        │  - Infrastructure services
-        │
-        ├─────────────┬─────────────┐
-        ▼             ▼             ▼
-semops-publisher  semops-docs   semops-data
+ │
+ │ Owns: Process (how we work)
+ │
+ ▼
+semops-core [SCHEMA/INFRASTRUCTURE] ← This repo
+ │
+ │ Owns: Model (what we know)
+ │ - Schema definitions
+ │ - Knowledge graph
+ │ - Infrastructure services
+ │
+ ├─────────────┬─────────────┐
+ ▼ ▼ ▼
+semops-publisher semops-docs semops-data
 ```
 
 **Key insight:** This repo owns *model* (what we know) and *infrastructure* (shared services), while `semops-dx-orchestrator` owns *process* (how we work).

@@ -1,0 +1,64 @@
+# Source Configuration for semops-dx-orchestrator domain patterns
+# $schema: source_config_v1
+
+source_id: github-dx-hub-domain-patterns
+surface_id: github-timjmitchell
+name: "Domain Patterns (semops-dx-orchestrator)"
+
+github:
+ owner: timjmitchell
+ repo: semops-dx-orchestrator
+ branch: main
+ base_path: docs/domain-patterns
+ include_directories: []
+ exclude_patterns:
+ - "**/_TEMPLATE.md"
+ - "**/WIP-*"
+ file_extensions:
+ - .md
+
+# Default values applied to all entities from this source
+defaults:
+ asset_type: file
+ version: "1.0"
+
+# Attribution template for all entities
+attribution:
+ $schema: attribution_v2
+ creator:
+ - Tim Mitchell
+ rights: CC-BY-4.0
+ organization: TJMConsulting
+ platform: github
+ channel: timjmitchell
+ epistemic_status: synthesis
+
+# LLM classification configuration
+llm_classify:
+ enabled: true
+ model: claude-opus-4-5-20251101
+ fields:
+ - concept_ownership
+ - content_type
+ - primary_concept
+ - broader_concepts
+ - narrower_concepts
+ - subject_area
+ - summary
+
+# Corpus routing: map file paths to corpus + content_type (ADR-0005)
+# All domain patterns are core_kb - these define the schema's aggregate root.
+corpus_routing:
+ rules:
+ # Lifecycle: draft/archive patterns (ingest with lifecycle_stage instead of excluding)
+ - path_pattern: "**/drafts/**"
+ corpus: core_kb
+ content_type: pattern
+ lifecycle_stage: draft
+ - path_pattern: "**/_archive/**"
+ corpus: core_kb
+ content_type: pattern
+ lifecycle_stage: deprecated
+ default_corpus: core_kb
+ default_content_type: pattern
+ default_lifecycle_stage: active

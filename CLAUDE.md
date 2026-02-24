@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working in this repository.
 
 **Repo:** `semops-core`
 **Role:** Schema owner and infrastructure provider
-**Location:** `.`
+**Location:** `
 
 **Owns:**
 - Global schema definitions (entity, edge, surface, delivery)
@@ -58,10 +58,10 @@ python start_services.py --skip-clone
 
 **Environment:** Create `.env` from `.env.example`. Key vars:
 
-| Variable      | Purpose                                                   |
+| Variable | Purpose |
 |---------------|-----------------------------------------------------------|
-| `SEMOPS_DB_*` | Application connection (scripts, agents, consuming repos)  |
-| `POSTGRES_*`  | Supabase infrastructure (docker-compose internals)         |
+| `SEMOPS_DB_*` | Application connection (scripts, agents, consuming repos) |
+| `POSTGRES_*` | Supabase infrastructure (docker-compose internals) |
 
 Scripts use `SEMOPS_DB_HOST=localhost`, `SEMOPS_DB_PORT=5434` by default via `scripts/db_utils.py`.
 All scripts import `from db_utils import get_db_connection` — do not duplicate connection logic.
@@ -70,15 +70,15 @@ All scripts import `from db_utils import get_db_connection` — do not duplicate
 
 ```bash
 # Schema
-python scripts/init_schema.py          # Initialize schema
-python scripts/setup_supabase.py       # Setup Supabase env
+python scripts/init_schema.py # Initialize schema
+python scripts/setup_supabase.py # Setup Supabase env
 
 # Data ingestion
-python scripts/ingest_from_source.py --source <name>  # Source-based ingestion (LLM classification)
-python scripts/ingest_architecture.py                  # Architecture layer (repos, capabilities, edges)
-python scripts/ingest_markdown_docs.py                 # Ingest markdown to entities (legacy)
-python scripts/sheets_to_entities.py                   # Import from Google Sheets
-python scripts/manage_lineage.py                       # Manage entity edges
+python scripts/ingest_from_source.py --source <name> # Source-based ingestion (LLM classification)
+python scripts/ingest_architecture.py # Architecture layer (repos, capabilities, edges)
+python scripts/ingest_markdown_docs.py # Ingest markdown to entities (legacy)
+python scripts/sheets_to_entities.py # Import from Google Sheets
+python scripts/manage_lineage.py # Manage entity edges
 ```
 
 ## Data Model
@@ -136,23 +136,23 @@ The MCP server exposes 10 tools across two query surfaces for cross-repo agent a
 
 ```
 semops-core/
-├── api/                  # MCP server and Query API
-│   ├── mcp_server.py     # MCP server (10 tools)
-│   └── query.py          # REST Query API (:8101)
-├── schemas/              # DDD schema definitions
-│   ├── UBIQUITOUS_LANGUAGE.md  # Domain language (business rules)
-│   ├── SCHEMA_REFERENCE.md     # Data dictionary (column specs)
-│   ├── phase2-schema.sql
-│   └── fitness-functions.sql
-├── scripts/              # Data transformation and query modules
-│   ├── search.py         # Semantic search (shared module)
-│   ├── schema_queries.py # ACL queries (shared module)
-│   ├── db_utils.py       # Database connection
-│   └── ...               # Ingestion, embedding, lineage scripts
-├── config/sources/       # Source configurations for ingestion
-├── docs/                 # Documentation and ADRs
-│   └── decisions/
-├── n8n/backup/           # Workflow definitions
+├── api/ # MCP server and Query API
+│ ├── mcp_server.py # MCP server (10 tools)
+│ └── query.py # REST Query API (:8101)
+├── schemas/ # DDD schema definitions
+│ ├── UBIQUITOUS_LANGUAGE.md # Domain language (business rules)
+│ ├── SCHEMA_REFERENCE.md # Data dictionary (column specs)
+│ ├── phase2-schema.sql
+│ └── fitness-functions.sql
+├── scripts/ # Data transformation and query modules
+│ ├── search.py # Semantic search (shared module)
+│ ├── schema_queries.py # ACL queries (shared module)
+│ ├── db_utils.py # Database connection
+│ └── ... # Ingestion, embedding, lineage scripts
+├── config/sources/ # Source configurations for ingestion
+├── docs/ # Documentation and ADRs
+│ └── decisions/
+├── n8n/backup/ # Workflow definitions
 └── docker-compose.yml
 ```
 
@@ -161,13 +161,13 @@ semops-core/
 ## Python Environment
 
 ```bash
-source .venv/bin/activate    # or: uv run <script>
+source .venv/bin/activate # or: uv run <script>
 python scripts/init_schema.py
 ```
 
 ## Related Documentation
 
-- [GLOBAL_ARCHITECTURE.md](docs/GLOBAL_ARCHITECTURE.md) - System landscape
+- [GLOBAL_ARCHITECTURE.md] - System landscape
 - [INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) - Services, operations, troubleshooting
 - [SEARCH_GUIDE.md](docs/SEARCH_GUIDE.md) - Search and retrieval (CLI, API, MCP)
 - [USER_GUIDE.md](docs/USER_GUIDE.md) - Ingestion pipeline

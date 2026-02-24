@@ -1,0 +1,85 @@
+# Source Configuration for semops-docs (SemOps Documentation)
+# $schema: source_config_v1
+
+source_id: github-semops-docs
+surface_id: github-timjmitchell
+name: "SemOps Documentation (semops-docs)"
+
+github:
+ owner: timjmitchell
+ repo: semops-docs
+ branch: main
+ base_path: docs/SEMOPS_DOCS
+ include_directories:
+ - SEMANTIC_OPERATIONS_FRAMEWORK
+ - RESEARCH
+ exclude_patterns:
+ - "**/WIP-*"
+ - "**/drafts/**"
+ - "**/AD_HOC/**"
+ file_extensions:
+ - .md
+
+# Default values applied to all entities from this source
+defaults:
+ asset_type: file
+ version: "1.0"
+
+# Attribution template for all entities
+attribution:
+ $schema: attribution_v2
+ creator:
+ - Tim Mitchell
+ rights: CC-BY-4.0
+ organization: SemOps.ai
+ platform: github
+ channel: github.com/semops-ai
+ epistemic_status: synthesis
+
+# LLM classification configuration
+llm_classify:
+ enabled: true
+ model: claude-opus-4-5-20251101
+ fields:
+ - concept_ownership
+ - content_type
+ - primary_concept
+ - broader_concepts
+ - narrower_concepts
+ - subject_area
+ - summary
+
+# Corpus routing: map file paths to corpus + content_type (ADR-0005)
+# Rules are evaluated in order; first match wins.
+corpus_routing:
+ rules:
+ - path_pattern: "**/_archive/**"
+ corpus: core_kb
+ content_type: article
+ lifecycle_stage: deprecated
+ - path_pattern: "**/_legacy/**"
+ corpus: core_kb
+ content_type: article
+ lifecycle_stage: deprecated
+ - path_pattern: "docs/SEMOPS_DOCS/RESEARCH/FOUNDATIONS/**"
+ corpus: core_kb
+ content_type: concept
+ - path_pattern: "docs/SEMOPS_DOCS/RESEARCH/CURRENT_CONTEXT/AI_TRANSFORMATION/**"
+ corpus: research_ai
+ content_type: concept
+ lifecycle_stage: draft
+ - path_pattern: "docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/SEMANTIC_OPTIMIZATION/**"
+ corpus: core_kb
+ content_type: concept
+ - path_pattern: "docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/STRATEGIC_DATA/**"
+ corpus: core_kb
+ content_type: concept
+ - path_pattern: "docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/EXPLICIT_ARCHITECTURE/**"
+ corpus: core_kb
+ content_type: architecture
+ - path_pattern: "docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/**"
+ corpus: core_kb
+ content_type: concept
+ default_corpus: core_kb
+ default_content_type: article
+ default_lifecycle_stage: active

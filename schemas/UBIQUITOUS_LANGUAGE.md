@@ -67,19 +67,19 @@ Project SemOps organizes into three layers (ADR-0009). Each layer has a distinct
 
 ```text
 ┌─────────────────────────────────────────────────┐
-│  PATTERN (Core Domain)                          │
-│  Stable semantic concepts — the WHY             │
-│  ddd, skos, semantic-coherence, shared-kernel   │
+│ PATTERN (Core Domain) │
+│ Stable semantic concepts — the WHY │
+│ ddd, skos, semantic-coherence, shared-kernel │
 ├─────────────────────────────────────────────────┤
-│  ARCHITECTURE (Strategic Design)        [NEW]   │
-│  System structure — the WHAT and WHERE          │
-│  Capabilities, Repos, Integration relationships │
-│  Every capability traces to ≥1 pattern          │
+│ ARCHITECTURE (Strategic Design) [NEW] │
+│ System structure — the WHAT and WHERE │
+│ Capabilities, Repos, Integration relationships │
+│ Every capability traces to ≥1 pattern │
 ├─────────────────────────────────────────────────┤
-│  CONTENT (DAM - Publishing)                     │
-│  Publishing artifacts — the output              │
-│  Blog posts, articles, media                    │
-│  Surface, Delivery, PIM/Brand                   │
+│ CONTENT (DAM - Publishing) │
+│ Publishing artifacts — the output │
+│ Blog posts, articles, media │
+│ Surface, Delivery, PIM/Brand │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -417,7 +417,7 @@ Content moves between corpora as its status changes:
 
 ### Lifecycle Stage
 
-Where an entity is in the knowledge lifecycle. Distinct from delivery approval (which gates publication to surfaces). Adopted from 3P patterns: CI/CD artifact promotion, Backstage software catalog lifecycle, DDD aggregate lifecycle.
+Where an entity is in the knowledge lifecycle. Distinct from delivery approval (which gates publication to surfaces). Adopted from 3P patterns: CI/CD artifact promotion, Backstage software catalog lifecycle, DDD aggregate lifecycle. See [#112](https://github.com/semops-ai/semops-core/issues/112) for design rationale.
 
 | Stage | Meaning | Coherence Role | Examples |
 |-------|---------|---------------|---------|
@@ -432,9 +432,9 @@ Where an entity is in the knowledge lifecycle. Distinct from delivery approval (
 **Governance model:**
 
 ```text
-Pattern (WHY)           →  Lifecycle defines WHAT states mean
-Architecture (WHAT)     →  Governance defines WHO can transition
-Content (output)        →  Episodes record THAT it happened
+Pattern (WHY) → Lifecycle defines WHAT states mean
+Architecture (WHAT) → Governance defines WHO can transition
+Content (output) → Episodes record THAT it happened
 ```
 
 The governance matrix is universal — same behavior for ALL entity types across all 5 stages. Entity type only determines the creation/iteration mechanism, not whether governance applies.
@@ -445,34 +445,34 @@ The governance matrix is universal — same behavior for ALL entity types across
 
 ```text
 Pattern (aggregate root — core domain)
-    │
-    ├── pattern_edge (SKOS: broader, narrower, related)
-    │                (Adoption: adopts, extends, modifies)
-    │
-    ├── Entity: capability (implements patterns, delivered by repos)
-    │       │
-    │       └── edge: delivered_by → Entity: repository
-    │
-    ├── Entity: repository (delivers capabilities, integrates with repos)
-    │       │
-    │       └── edge: integration → Entity: repository
-    │
-    └── Entity: content (DAM — documents patterns)
-            │
-            ├── edge (PROV-O: derived_from, cites, version_of, etc.)
-            │
-            └── Delivery (per-surface governance)
-                    │
-                    └── Surface (publication destinations)
+ │
+ ├── pattern_edge (SKOS: broader, narrower, related)
+ │ (Adoption: adopts, extends, modifies)
+ │
+ ├── Entity: capability (implements patterns, delivered by repos)
+ │ │
+ │ └── edge: delivered_by → Entity: repository
+ │
+ ├── Entity: repository (delivers capabilities, integrates with repos)
+ │ │
+ │ └── edge: integration → Entity: repository
+ │
+ └── Entity: content (DAM — documents patterns)
+ │
+ ├── edge (PROV-O: derived_from, cites, version_of, etc.)
+ │
+ └── Delivery (per-surface governance)
+ │
+ └── Surface (publication destinations)
 
 Brand (CRM/PIM actors)
-    │
-    ├── Product (what you sell)
-    └── Brand Relationship (who knows whom)
+ │
+ ├── Product (what you sell)
+ └── Brand Relationship (who knows whom)
 
 Ingestion Run (provenance — operational)
-    │
-    └── Ingestion Episode (per-operation lineage)
+ │
+ └── Ingestion Episode (per-operation lineage)
 ```
 
 ---

@@ -84,7 +84,7 @@ The heading hierarchy is preserved (e.g., `["Architecture", "Entities", "Attribu
 
 Two different embedding strategies produce two searchable layers:
 
-**Entity embeddings** are built from structured metadata — not the full document content. The `build_embedding_text()` function in `generate_embeddings.py` assembles:
+**Entity embeddings** are built from structured metadata — not the full document content. The `build_embedding_text` function in `generate_embeddings.py` assembles:
 
 ```
 Title: Schema Reference
@@ -119,15 +119,15 @@ The graph layer connects to the core DDD schema through a promotion pipeline. Th
 Neo4j serves as the **discovery and exploration layer** between LLM detection and formal edge commitment:
 
 ```
-LLM Classification          Neo4j Graph              PostgreSQL Schema
-(detection)                 (exploration)            (committed model)
+LLM Classification Neo4j Graph PostgreSQL Schema
+(detection) (exploration) (committed model)
 
 detected_edges ──────────► Entity→Concept ·········► edge table
-  in metadata                 nodes + rels              (PROV-O, DDD predicates)
-  (per-entity)               (traversable)
+ in metadata nodes + rels (PROV-O, DDD predicates)
+ (per-entity) (traversable)
 
-                           Pattern nodes  ◄────────── pattern_edge table
-                             + SKOS rels               (SKOS, adoption)
+ Pattern nodes ◄────────── pattern_edge table
+ + SKOS rels (SKOS, adoption)
 ```
 
 The flow works in both directions:
@@ -182,38 +182,38 @@ The shared search module (`scripts/search.py`) implements all three modes as pur
 The MCP server (`api/mcp_server.py`) exposes two query surfaces to Claude Code agents in any repo: **semantic search** (content discovery via embeddings) and **ACL queries** (deterministic architectural lookups against the DDD schema).
 
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│ semops-publisher │     │   semops-data    │     │  semops-dx-orchestrator   │
-│              │     │              │     │              │
-│ Claude Code  │     │ Claude Code  │     │ Claude Code  │
-│   agent      │     │   agent      │     │   agent      │
-└──────┬───────┘     └──────┬───────┘     └──────┬───────┘
-       │                    │                    │
-       │     MCP (stdio)    │                    │
-       └────────────┬───────┘────────────────────┘
-                    │
-          ┌─────────▼──────────┐
-          │   semops-kb MCP    │
-          │                    │
-          │ Semantic Search    │     ┌──────────────────┐
-          │  search_knowledge_ │     │                  │
-          │    base (entities) │────►│  PostgreSQL +    │
-          │  search_chunks     │     │  pgvector        │
-          │    (passages)      │     │                  │
-          │  list_corpora      │     │  entity          │
-          │                    │────►│  document_chunk  │
-          │ ACL Queries        │     │  pattern         │
-          │  list_patterns     │     │  pattern_edge    │
-          │  get_pattern       │────►│  edge            │
-          │  search_patterns   │     │  views:          │
-          │  list_capabilities │     │   capability_    │
-          │  get_capability_   │     │     coverage     │
-          │    impact          │     │   integration_   │
-          │  query_integration │     │     map          │
-          │    _map            │     │   repo_          │
-          │  run_fitness_      │     │     capabilities │
-          │    checks          │     │                  │
-          └────────────────────┘     └──────────────────┘
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ semops-publisher │ │ semops-data │ │ semops-dx-orchestrator │
+│ │ │ │ │ │
+│ Claude Code │ │ Claude Code │ │ Claude Code │
+│ agent │ │ agent │ │ agent │
+└──────┬───────┘ └──────┬───────┘ └──────┬───────┘
+ │ │ │
+ │ MCP (stdio) │ │
+ └────────────┬───────┘────────────────────┘
+ │
+ ┌─────────▼──────────┐
+ │ semops-kb MCP │
+ │ │
+ │ Semantic Search │ ┌──────────────────┐
+ │ search_knowledge_ │ │ │
+ │ base (entities) │────►│ PostgreSQL + │
+ │ search_chunks │ │ pgvector │
+ │ (passages) │ │ │
+ │ list_corpora │ │ entity │
+ │ │────►│ document_chunk │
+ │ ACL Queries │ │ pattern │
+ │ list_patterns │ │ pattern_edge │
+ │ get_pattern │────►│ edge │
+ │ search_patterns │ │ views: │
+ │ list_capabilities │ │ capability_ │
+ │ get_capability_ │ │ coverage │
+ │ impact │ │ integration_ │
+ │ query_integration │ │ map │
+ │ _map │ │ repo_ │
+ │ run_fitness_ │ │ capabilities │
+ │ checks │ │ │
+ └────────────────────┘ └──────────────────┘
 ```
 
 **Registered in:** `~/.claude.json` (global) and `.mcp.json` (project-level)
@@ -317,7 +317,7 @@ Scripts are capability implementations — small, focused, independently runnabl
 | `scripts/chunker.py` | Ingestion Pipeline | Heading-aware markdown chunking with overlap |
 | `scripts/classifiers/llm.py` | Ingestion Pipeline | LLM classification (content_type, concepts, edges) |
 | `scripts/classifiers/rules.py` | Ingestion Pipeline | Rule-based classification (corpus routing) |
-| `scripts/generate_embeddings.py` | Ingestion Pipeline | Entity embedding generation (`build_embedding_text()`) |
+| `scripts/generate_embeddings.py` | Ingestion Pipeline | Entity embedding generation (`build_embedding_text`) |
 | `scripts/docling_ingest.py` | Ingestion Pipeline | PDF/DOCX ingestion via Docling API |
 | `scripts/github_fetcher.py` | Ingestion Pipeline | GitHub repo file fetching |
 | `scripts/search.py` | Internal Knowledge Access | Shared search module (entity, chunk, hybrid) |
@@ -333,7 +333,7 @@ Scripts are capability implementations — small, focused, independently runnabl
 | `scripts/bridge_content_patterns.py` | Pattern Management | HITL: extract detected_edges → human review → register |
 | `scripts/lineage/tracker.py` | Agentic Lineage | LineageTracker context manager for ingestion runs |
 | `scripts/lineage/episode.py` | Agentic Lineage | Episode model (operation, context, coherence_score) |
-| `scripts/db_utils.py` | *(shared utility)* | Database connection (`get_db_connection()`) |
+| `scripts/db_utils.py` | *(shared utility)* | Database connection (`get_db_connection`) |
 
 ### Other Components
 
@@ -365,21 +365,21 @@ Scripts are capability implementations — small, focused, independently runnabl
 ## Data Flows
 
 ```text
-Source repos          semops-core                      Consumers
-(semops-docs,         ┌─────────────────────────────────┐
- semops-publisher,    │                                 │    CLI
- semops-dx-orchestrator)       │   Ingestion                     │    (semantic_search.py)
-     │            │   ├── Entity + metadata          │
-     │  GitHub    │   ├── Chunks + content           │    Query API
-     └──────────► │   ├── Embeddings (OpenAI)        │    (localhost:8101)
-        fetch     │   └── Graph edges (Neo4j)        │
-                  │                                 │    MCP Server
-                  │   Retrieval                     │    (cross-repo agents)
-                  │   ├── Entity search (topics)     │───►  semops-publisher
-                  │   ├── Chunk search (passages)    │───►  semops-data
-                  │   └── Hybrid search (both)       │───►  semops-dx-orchestrator
-                  │                                 │───►  semops-docs
-                  └─────────────────────────────────┘
+Source repos semops-core Consumers
+(semops-docs, ┌─────────────────────────────────┐
+ semops-publisher, │ │ CLI
+ semops-dx-orchestrator) │ Ingestion │ (semantic_search.py)
+ │ │ ├── Entity + metadata │
+ │ GitHub │ ├── Chunks + content │ Query API
+ └──────────► │ ├── Embeddings (OpenAI) │ (localhost:8101)
+ fetch │ └── Graph edges (Neo4j) │
+ │ │ MCP Server
+ │ Retrieval │ (cross-repo agents)
+ │ ├── Entity search (topics) │───► semops-publisher
+ │ ├── Chunk search (passages) │───► semops-data
+ │ └── Hybrid search (both) │───► semops-dx-orchestrator
+ │ │───► semops-docs
+ └─────────────────────────────────┘
 ```
 
 ---

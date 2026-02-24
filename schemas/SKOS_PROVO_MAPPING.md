@@ -1,12 +1,12 @@
 # W3C Standards Mapping: SKOS + PROV-O
 
-> **Visual guide to SemOps's W3C standards-based architecture**
+> **Visual guide to Project Ike's W3C standards-based architecture**
 >
 > Last Updated: 2025-11-21
 
 ## Overview
 
-SemOps implements a dual-standard architecture based on W3C semantic web specifications:
+Project Ike implements a dual-standard architecture based on W3C semantic web specifications:
 
 - **W3C SKOS (Simple Knowledge Organization System)** → `content_metadata` (semantics WITHIN entities)
 - **W3C PROV-O (Provenance Ontology)** → Edge predicates (relationships BETWEEN entities)
@@ -19,37 +19,37 @@ This separation provides a clean, standards-compliant architecture for semantic 
 
 ```mermaid
 graph TB
-    subgraph "Entity (Aggregate Root)"
-        E[Entity]
-        E --> META[metadata JSONB]
-        E --> EDGES[relationships]
+ subgraph "Entity (Aggregate Root)"
+ E[Entity]
+ E --> META[metadata JSONB]
+ E --> EDGES[relationships]
 
-        META --> SKOS["W3C SKOS<br/>(Internal Semantics)"]
-        EDGES --> PROVO["W3C PROV-O<br/>(External Provenance)"]
-    end
+ META --> SKOS["W3C SKOS<br/>(Internal Semantics)"]
+ EDGES --> PROVO["W3C PROV-O<br/>(External Provenance)"]
+ end
 
-    subgraph "W3C SKOS → content_metadata"
-        SKOS --> ST[semantic_type<br/>skos:Concept]
-        SKOS --> PL[preferred_label<br/>skos:prefLabel]
-        SKOS --> AL[alt_labels<br/>skos:altLabel]
-        SKOS --> DEF[definition<br/>skos:definition]
-        SKOS --> BC[broader_concepts<br/>skos:broader]
-        SKOS --> NC[narrower_concepts<br/>skos:narrower]
-        SKOS --> RC[related_concepts<br/>skos:related]
-    end
+ subgraph "W3C SKOS → content_metadata"
+ SKOS --> ST[semantic_type<br/>skos:Concept]
+ SKOS --> PL[preferred_label<br/>skos:prefLabel]
+ SKOS --> AL[alt_labels<br/>skos:altLabel]
+ SKOS --> DEF[definition<br/>skos:definition]
+ SKOS --> BC[broader_concepts<br/>skos:broader]
+ SKOS --> NC[narrower_concepts<br/>skos:narrower]
+ SKOS --> RC[related_concepts<br/>skos:related]
+ end
 
-    subgraph "W3C PROV-O → Edge Predicates"
-        PROVO --> DF[derived_from<br/>prov:wasDerivedFrom]
-        PROVO --> CT[cites<br/>prov:wasQuotedFrom]
-        PROVO --> VER[version_of<br/>prov:wasRevisionOf]
-        PROVO --> DOC[documents<br/>schema:about]
-        PROVO --> PART[part_of<br/>schema:isPartOf]
-    end
+ subgraph "W3C PROV-O → Edge Predicates"
+ PROVO --> DF[derived_from<br/>prov:wasDerivedFrom]
+ PROVO --> CT[cites<br/>prov:wasQuotedFrom]
+ PROVO --> VER[version_of<br/>prov:wasRevisionOf]
+ PROVO --> DOC[documents<br/>schema:about]
+ PROVO --> PART[part_of<br/>schema:isPartOf]
+ end
 
-    style SKOS fill:#e1f5ff
-    style PROVO fill:#fff4e1
-    style META fill:#e8f5e9
-    style EDGES fill:#fce4ec
+ style SKOS fill:#e1f5ff
+ style PROVO fill:#fff4e1
+ style META fill:#e8f5e9
+ style EDGES fill:#fce4ec
 ```
 
 ---
@@ -67,7 +67,7 @@ Stored in Entity's `metadata` JSONB field as `content_metadata_v1`
 
 ### Complete Mapping Table
 
-| SemOps Field | SKOS Property | Description | Example |
+| Project Ike Field | SKOS Property | Description | Example |
 |-------------------|---------------|-------------|---------|
 | `semantic_type` | `rdf:type skos:Concept` | What kind of concept this is | `"concept"`, `"framework"` |
 | `preferred_label` | `skos:prefLabel` | Preferred human-readable label | `"Semantic Coherence"` |
@@ -84,18 +84,18 @@ Stored in Entity's `metadata` JSONB field as `content_metadata_v1`
 
 ```json
 {
-  "$schema": "content_metadata_v1",
-  "semantic_type": "concept",
-  "preferred_label": "Semantic Coherence",
-  "alt_labels": ["SemCo", "Coherence"],
-  "definition": "The degree of shared meaning and mutual understanding within a semantic context",
-  "broader_concepts": ["semantic-operations", "knowledge-management"],
-  "narrower_concepts": ["semantic-drift", "coherence-audit"],
-  "related_concepts": ["knowledge-graphs", "domain-driven-design"],
-  "scope_note": "Use this concept when analyzing shared understanding in distributed teams",
-  "primary_concept": "semantic-coherence",
-  "domain": "knowledge-management",
-  "abstraction_level": "intermediate"
+ "$schema": "content_metadata_v1",
+ "semantic_type": "concept",
+ "preferred_label": "Semantic Coherence",
+ "alt_labels": ["SemCo", "Coherence"],
+ "definition": "The degree of shared meaning and mutual understanding within a semantic context",
+ "broader_concepts": ["semantic-operations", "knowledge-management"],
+ "narrower_concepts": ["semantic-drift", "coherence-audit"],
+ "related_concepts": ["knowledge-graphs", "domain-driven-design"],
+ "scope_note": "Use this concept when analyzing shared understanding in distributed teams",
+ "primary_concept": "semantic-coherence",
+ "domain": "knowledge-management",
+ "abstraction_level": "intermediate"
 }
 ```
 
@@ -114,49 +114,49 @@ Stored as typed edges in the `edge` table with directional relationships
 
 ### Complete Mapping Table
 
-| SemOps Predicate | W3C Property | Description | Direction | Example |
+| Project Ike Predicate | W3C Property | Description | Direction | Example |
 |-----------------------|--------------|-------------|-----------|---------|
 | `derived_from` | `prov:wasDerivedFrom` | Entity created by transforming source | Derivative → Original | Transcript → Video |
 | `cites` | `prov:wasQuotedFrom` | Entity references/quotes source | Citing → Cited | Blog Post → Paper |
 | `version_of` | `prov:wasRevisionOf` | Entity is revision of earlier version | New → Old | v2.0 → v1.0 |
 | `part_of` | `schema:isPartOf` | Entity is component of larger whole | Part → Whole | Chapter → Book |
 | `documents` | `schema:about` (inverted) | Entity explains/documents concept | Docs → Concept | Guide → Framework |
-| `depends_on` | *(SemOps extension)* | Entity requires prerequisite knowledge | Advanced → Basic | Tutorial 2 → Tutorial 1 |
+| `depends_on` | *(Project Ike extension)* | Entity requires prerequisite knowledge | Advanced → Basic | Tutorial 2 → Tutorial 1 |
 | `related_to` | `skos:related` | Entities are conceptually related | A ↔ B | Framework A ↔ Framework B |
 
 ### Example Relationships
 
 ```yaml
 relationships:
-  # PROV-O: Derivation lineage
-  - predicate: derived_from
-    target_id: source-video-karpathy
-    strength: 1.0
+ # PROV-O: Derivation lineage
+ - predicate: derived_from
+ target_id: source-video-karpathy
+ strength: 1.0
 
-  # PROV-O: Citation/attribution
-  - predicate: cites
-    target_id: research-paper-attention
-    strength: 0.9
+ # PROV-O: Citation/attribution
+ - predicate: cites
+ target_id: research-paper-attention
+ strength: 0.9
 
-  # PROV-O: Version succession
-  - predicate: version_of
-    target_id: dikw-framework-v1
-    strength: 1.0
+ # PROV-O: Version succession
+ - predicate: version_of
+ target_id: dikw-framework-v1
+ strength: 1.0
 
-  # Schema.org: Compositional hierarchy
-  - predicate: part_of
-    target_id: semantic-operations-framework
-    strength: 1.0
+ # Schema.org: Compositional hierarchy
+ - predicate: part_of
+ target_id: semantic-operations-framework
+ strength: 1.0
 
-  # Schema.org: Documentation relationship
-  - predicate: documents
-    target_id: semantic-coherence-concept
-    strength: 1.0
+ # Schema.org: Documentation relationship
+ - predicate: documents
+ target_id: semantic-coherence-concept
+ strength: 1.0
 
-  # SemOps: Learning path dependency
-  - predicate: depends_on
-    target_id: dikw-basics
-    strength: 0.8
+ # Project Ike: Learning path dependency
+ - predicate: depends_on
+ target_id: dikw-basics
+ strength: 0.8
 ```
 
 ---
@@ -165,28 +165,28 @@ relationships:
 
 ```mermaid
 graph LR
-    subgraph "Entity A (Concept Definition)"
-        A[Semantic Coherence]
-        A_META["metadata (SKOS)<br/>━━━━━━━━━━<br/>semantic_type: concept<br/>broader: semantic-ops<br/>narrower: semantic-drift"]
-    end
+ subgraph "Entity A (Concept Definition)"
+ A[Semantic Coherence]
+ A_META["metadata (SKOS)<br/>━━━━━━━━━━<br/>semantic_type: concept<br/>broader: semantic-ops<br/>narrower: semantic-drift"]
+ end
 
-    subgraph "Entity B (Tutorial)"
-        B[SC Tutorial]
-        B_META["metadata (SKOS)<br/>━━━━━━━━━━<br/>semantic_type: guide<br/>primary_concept: semantic-coherence"]
-    end
+ subgraph "Entity B (Tutorial)"
+ B[SC Tutorial]
+ B_META["metadata (SKOS)<br/>━━━━━━━━━━<br/>semantic_type: guide<br/>primary_concept: semantic-coherence"]
+ end
 
-    subgraph "Entity C (Parent Framework)"
-        C[Semantic Operations]
-        C_META["metadata (SKOS)<br/>━━━━━━━━━━<br/>semantic_type: framework<br/>narrower: semantic-coherence"]
-    end
+ subgraph "Entity C (Parent Framework)"
+ C[Semantic Operations]
+ C_META["metadata (SKOS)<br/>━━━━━━━━━━<br/>semantic_type: framework<br/>narrower: semantic-coherence"]
+ end
 
-    B -->|documents<br/>PROV-O Edge| A
-    A -->|part_of<br/>Schema.org Edge| C
-    B -->|depends_on<br/>SemOps Edge| A
+ B -->|documents<br/>PROV-O Edge| A
+ A -->|part_of<br/>Schema.org Edge| C
+ B -->|depends_on<br/>Project Ike Edge| A
 
-    style A_META fill:#e1f5ff
-    style B_META fill:#e1f5ff
-    style C_META fill:#e1f5ff
+ style A_META fill:#e1f5ff
+ style B_META fill:#e1f5ff
+ style C_META fill:#e1f5ff
 ```
 
 ---
@@ -225,37 +225,37 @@ title: Understanding Semantic Coherence
 
 # SKOS: Internal semantics
 metadata:
-  $schema: content_metadata_v1
-  semantic_type: guide                          # What it IS
-  preferred_label: "Understanding Semantic Coherence Guide"
-  primary_concept: semantic-coherence           # What it's ABOUT
-  broader_concepts: ["semantic-operations"]     # Concept hierarchy
-  related_concepts: ["knowledge-graphs"]
-  domain: knowledge-management
-  abstraction_level: intermediate
-  semantic_roles: ["tutorial", "example"]
+ $schema: content_metadata_v1
+ semantic_type: guide # What it IS
+ preferred_label: "Understanding Semantic Coherence Guide"
+ primary_concept: semantic-coherence # What it's ABOUT
+ broader_concepts: ["semantic-operations"] # Concept hierarchy
+ related_concepts: ["knowledge-graphs"]
+ domain: knowledge-management
+ abstraction_level: intermediate
+ semantic_roles: ["tutorial", "example"]
 
 # PROV-O: External provenance
 relationships:
-  # Documents the concept (this guide explains that concept)
-  - predicate: documents
-    target_id: semantic-coherence-concept
-    strength: 1.0
+ # Documents the concept (this guide explains that concept)
+ - predicate: documents
+ target_id: semantic-coherence-concept
+ strength: 1.0
 
-  # Derived from notes (provenance lineage)
-  - predicate: derived_from
-    target_id: notes-coherence-2024
-    strength: 0.9
+ # Derived from notes (provenance lineage)
+ - predicate: derived_from
+ target_id: notes-coherence-2024
+ strength: 0.9
 
-  # Cites research paper (attribution)
-  - predicate: cites
-    target_id: paper-shared-understanding
-    strength: 0.8
+ # Cites research paper (attribution)
+ - predicate: cites
+ target_id: paper-shared-understanding
+ strength: 0.8
 
-  # Depends on prerequisite (learning path)
-  - predicate: depends_on
-    target_id: semantic-operations-intro
-    strength: 0.7
+ # Depends on prerequisite (learning path)
+ - predicate: depends_on
+ target_id: semantic-operations-intro
+ strength: 0.7
 ---
 ```
 
@@ -304,9 +304,11 @@ WHERE src_id = 'my-article' AND predicate = 'cites';
 ## See Also
 
 ### Project Documentation
-- [content_metadata_v1.json](metadata/content_metadata_v1.json) - SKOS schema
-- [UBIQUITOUS_LANGUAGE.md](UBIQUITOUS_LANGUAGE.md) - Domain terminology
-- [SCHEMA_REFERENCE.md](SCHEMA_REFERENCE.md) - Data dictionary
+- [Edge Predicates](./domain-patterns/edge-predicates.md) - Complete predicate documentation
+- [Edge Predicate Examples](./domain-patterns/edge-predicate-examples.md) - Practical examples
+- [Domain Patterns](./domain-patterns/) - Architecture patterns and workflows
+- [content_metadata_v1.json](../schemas/metadata/content_metadata_v1.json) - SKOS schema
+- [UBIQUITOUS_LANGUAGE.md](../schemas/UBIQUITOUS_LANGUAGE.md) - Domain terminology
 
 ### W3C Standards
 - [W3C SKOS Reference](https://www.w3.org/TR/skos-reference/) - Simple Knowledge Organization System

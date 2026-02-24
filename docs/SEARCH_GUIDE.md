@@ -52,16 +52,16 @@ Each ingested document exists at two levels in the knowledge base:
 
 ```text
 Entity: "schema-reference.md"
-  embedding from: title + summary + concept tags (metadata)
-  |
-  +-- Chunk 0: "## Entity Table\nThe entity table is the..."
-  |   embedding from: actual section text
-  |
-  +-- Chunk 1: "## Document Chunk Table\nChunks store..."
-  |   embedding from: actual section text
-  |
-  +-- Chunk 2: "## Edge Table\nRelationships between..."
-      embedding from: actual section text
+ embedding from: title + summary + concept tags (metadata)
+ |
+ +-- Chunk 0: "## Entity Table\nThe entity table is the..."
+ | embedding from: actual section text
+ |
+ +-- Chunk 1: "## Document Chunk Table\nChunks store..."
+ | embedding from: actual section text
+ |
+ +-- Chunk 2: "## Edge Table\nRelationships between..."
+ embedding from: actual section text
 ```
 
 Because entity and chunk embeddings are built from different text, the same query can surface different results at each layer. Entity search for "embeddings" returns `schema-reference.md` (metadata topic match), while chunk search for "embeddings" returns the specific paragraph explaining the embedding column (content match).
@@ -139,19 +139,19 @@ python scripts/semantic_search.py "semantic flywheel" --mode hybrid
 
 # Filter by corpus
 python scripts/semantic_search.py \
-  "publication workflow" --corpus core_kb published
+ "publication workflow" --corpus core_kb published
 
 # Filter by content type (entity mode)
 python scripts/semantic_search.py \
-  "architecture decisions" --mode entities --content-type adr
+ "architecture decisions" --mode entities --content-type adr
 
 # Filter by lifecycle stage (entity mode only)
 python scripts/semantic_search.py \
-  "draft concepts" --mode entities --lifecycle-stage draft
+ "draft concepts" --mode entities --lifecycle-stage draft
 
 # Combine filters with limit and verbose output
 python scripts/semantic_search.py \
-  "provenance" --corpus core_kb --limit 5 --verbose
+ "provenance" --corpus core_kb --limit 5 --verbose
 ```
 
 **Search modes:**
@@ -187,13 +187,13 @@ uvicorn api.query:app --port 8101
 
 ```bash
 curl -s http://localhost:8101/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What is semantic coherence?",
-    "corpus": ["core_kb"],
-    "content_type": ["concept", "pattern"],
-    "limit": 5
-  }' | python3 -m json.tool
+ -H "Content-Type: application/json" \
+ -d '{
+ "query": "What is semantic coherence?",
+ "corpus": ["core_kb"],
+ "content_type": ["concept", "pattern"],
+ "limit": 5
+ }' | python3 -m json.tool
 ```
 
 **Response fields:** `id`, `title`, `corpus`, `content_type`, `summary`, `similarity`, `filespec`, `metadata`
@@ -202,12 +202,12 @@ curl -s http://localhost:8101/search \
 
 ```bash
 curl -s http://localhost:8101/search/chunks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "semantic compression in DDD",
-    "corpus": ["core_kb"],
-    "limit": 5
-  }' | python3 -m json.tool
+ -H "Content-Type: application/json" \
+ -d '{
+ "query": "semantic compression in DDD",
+ "corpus": ["core_kb"],
+ "limit": 5
+ }' | python3 -m json.tool
 ```
 
 **Response fields:** `chunk_id`, `entity_id`, `source_file`, `heading_hierarchy`, `content`, `corpus`, `content_type`, `similarity`, `chunk_index`, `total_chunks`
@@ -216,13 +216,13 @@ curl -s http://localhost:8101/search/chunks \
 
 ```bash
 curl -s http://localhost:8101/search/hybrid \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "semantic flywheel pattern",
-    "corpus": ["core_kb"],
-    "limit": 5,
-    "chunks_per_entity": 3
-  }' | python3 -m json.tool
+ -H "Content-Type: application/json" \
+ -d '{
+ "query": "semantic flywheel pattern",
+ "corpus": ["core_kb"],
+ "limit": 5,
+ "chunks_per_entity": 3
+ }' | python3 -m json.tool
 ```
 
 Returns top entities with their best-matching chunks inlined.

@@ -1,9 +1,50 @@
-# SemOps Schema Changelog
+# Project Ike Schema Changelog
 
-All notable changes to the SemOps schema will be documented in this file.
+All notable changes to the Project Ike schema will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [8.1.0] - 2026-02-17
+
+### Changed - pattern_coverage view includes edge-based content counting (#138)
+
+**`pattern_coverage` view now counts content entities linked via `documents`/`related_to` edges in addition to `primary_pattern_id` FK.** This closes the governance gap where semops-docs theory documents were ingested but invisible to coverage views because they lacked a direct FK to the pattern table.
+
+#### What Changed
+
+**Views:**
+
+- Updated: `pattern_coverage.content_count` now unions two paths:
+ 1. FK path: `entity.primary_pattern_id = pattern.id` (existing, for dp-* docs)
+ 2. Edge path: `edge(entity→pattern, predicate IN ('documents', 'related_to'))` (new, for semops-docs)
+- Removed: `LEFT JOIN entity` and `GROUP BY` — all counts are now correlated subqueries (consistent with `capability_count` and `repo_count`)
+
+**New Script:**
+
+- `scripts/bridge_content_patterns.py` — HITL workflow for bridging content entities to the pattern layer:
+ - `--extract`: generates `config/mappings/concept-pattern-map.yaml` from `detected_edges`
+ - `--apply`: creates PostgreSQL edges and registers new patterns from reviewed mapping
+ - `--verify`: reports on bridging results and governance impact
+
+#### Migration
+
+For existing databases, re-create the view:
+
+```sql
+-- Run the updated pattern_coverage view from phase2-schema.sql
+-- (DROP VIEW IF EXISTS + CREATE OR REPLACE VIEW)
+```
+
+No data migration needed. View replacement is non-destructive.
+
+#### References
+
+- [Issue #138](https://github.com/semops-ai/semops-core/issues/138)
+- ADR-0009 (three-layer architecture)
+- ADR-0011 (agent governance model)
 
 ---
 
@@ -34,9 +75,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Fitness Functions:**
 - Rewritten for Phase 2 table names (was referencing Phase 1 `item`/`concept`)
-- Added: `check_capability_pattern_coverage()` — CRITICAL: every capability must trace to >=1 pattern
-- Added: `check_content_entity_asset_type()` — content entities must have asset_type set
-- Added: `check_integration_edge_metadata()` — integration edges need integration_pattern and direction
+- Added: `check_capability_pattern_coverage` — CRITICAL: every capability must trace to >=1 pattern
+- Added: `check_content_entity_asset_type` — content entities must have asset_type set
+- Added: `check_integration_edge_metadata` — integration edges need integration_pattern and direction
 
 **Metadata Schemas:**
 - `capability_metadata_v1`: domain_classification, description, implements_patterns, delivered_by_repos, status
@@ -46,9 +87,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Three-Layer Architecture (ADR-0009)
 
 ```text
-Pattern (Core Domain)      — Stable semantic concepts (the WHY)
-Architecture (Strategic)   — Capabilities, repos, integration (the WHAT/WHERE)
-Content (DAM Publishing)   — Publishing artifacts (the output)
+Pattern (Core Domain) — Stable semantic concepts (the WHY)
+Architecture (Strategic) — Capabilities, repos, integration (the WHAT/WHERE)
+Content (DAM Publishing) — Publishing artifacts (the output)
 ```
 
 Each layer links upward via edges: Content `documents` Patterns. Capabilities `implements` Patterns. Repos `delivered_by` from Capabilities.
@@ -61,8 +102,9 @@ For fresh installs, `phase2-schema.sql` includes all changes.
 
 #### References
 
-- ADR-0009: Strategic/Tactical DDD Refactor
+- [ADR-0009: Strategic/Tactical DDD Refactor](../docs/decisions/ADR-0009-strategic-tactical-ddd-refactor.md)
 - [STRATEGIC_DDD.md](../docs/STRATEGIC_DDD.md) — Capability registry, repo registry, integration map
+- [Issue #122](https://github.com/semops-ai/semops-core/issues/122)
 
 ---
 
@@ -166,8 +208,9 @@ Foundation 3p patterns included:
 
 #### References
 
-- ADR-0004: Schema Phase 2 — Pattern as Aggregate Root
+- [ADR-0004: Schema Phase 2 - Pattern as Aggregate Root](../docs/decisions/ADR-0004-schema-phase2-pattern-aggregate-root.md)
 - [phase2-schema.sql](./phase2-schema.sql)
+- [Issue #96](https://github.com/semops-ai/semops-core/issues/96)
 
 ---
 
@@ -235,17 +278,17 @@ Foundation 3p patterns included:
 ```json
 // Before (attribution_v1)
 {
-  "$schema": "attribution_v1",
-  "authors": ["Tim Mitchell"],
-  "license": "CC-BY-4.0",
-  "copyright": "© 2024 Tim Mitchell"
+ "$schema": "attribution_v1",
+ "authors": ["Tim Mitchell"],
+ "license": "CC-BY-4.0",
+ "copyright": "© 2024 Tim Mitchell"
 }
 
 // After (attribution_v2)
 {
-  "$schema": "attribution_v2",
-  "creator": ["Tim Mitchell"],
-  "rights": "CC-BY-4.0"
+ "$schema": "attribution_v2",
+ "creator": ["Tim Mitchell"],
+ "rights": "CC-BY-4.0"
 }
 ```
 
@@ -257,7 +300,7 @@ Foundation 3p patterns included:
 
 #### Rationale
 
-From the Concept Entity Strategy decision:
+From Issue #47 (Concept Entity Strategy):
 > **Unified catalog** (1P/2P/3P) requires richer attribution than Dublin Core provides, but aligning field names improves interoperability.
 
 Benefits:
@@ -267,7 +310,7 @@ Benefits:
 - ✅ `source_reference` for bibliographic citations without formal authorship
 - ✅ Retained custom extensions for AI attribution tracking
 
-**See:** Concept Entity Strategy, Decision 4
+**See:** Issue #47, docs/decisions/ISSUE-47-CONCEPT-STRATEGY.md (Decision 4)
 
 ---
 
@@ -288,7 +331,7 @@ Benefits:
 - `part_of` ← `schema:isPartOf`
 - `documents` ← `schema:about` (inverted)
 
-**SemOps Domain Extensions (2):**
+**Project Ike Domain Extensions (2):**
 - `depends_on` - Prerequisite knowledge (inspired by software dependency graphs)
 - `related_to` - Semantic association (inspired by SKOS `skos:related`)
 
@@ -317,7 +360,7 @@ Using a "standard set" of predicates based on established W3C and Schema.org voc
 - Clear provenance lineage from authoritative standards
 - Transparency about which predicates are standard vs custom
 
-**See:** Edge Predicates Formalization decision
+**See:** Issue #55
 
 ---
 
@@ -483,7 +526,7 @@ check (predicate in ('derived_from','cites','version_of','part_of','documents','
 - Required field additions
 - Table/constraint removals
 
-### MINOR (0.x.0)  
+### MINOR (0.x.0) 
 - New tables, columns, enums (additive)
 - New nullable fields with defaults
 - New optional constraints
@@ -501,7 +544,7 @@ check (predicate in ('derived_from','cites','version_of','part_of','documents','
 
 **Core Tables:**
 - `concept` - Abstract ideas and categories (knowledge-ops, vector-database, etc.)
-- `item` - Concrete content and artifacts (blog posts, research, code, etc.)  
+- `item` - Concrete content and artifacts (blog posts, research, code, etc.) 
 - `edge` - Typed relationships between concepts and items
 - `schema_version` - Schema version tracking table
 
@@ -558,7 +601,7 @@ check (predicate in ('derived_from','cites','version_of','part_of','documents','
 
 ### Phase 1 (Current)
 - Blog-geratror workflow integration
-- SemOps knowledge base
+- Project Ike knowledge base
 - Basic RAG indexing preparation
 
 ### Phase 2 (Planned)
@@ -576,7 +619,7 @@ check (predicate in ('derived_from','cites','version_of','part_of','documents','
 
 ### Contract Tests
 - [ ] Sample data loads without errors
-- [ ] All indexes perform within acceptable ranges  
+- [ ] All indexes perform within acceptable ranges 
 - [ ] JSON schemas validate properly
 - [ ] Foreign key constraints work as expected
 
@@ -597,6 +640,6 @@ check (predicate in ('derived_from','cites','version_of','part_of','documents','
 ## Related Documentation
 
 - `UBIQUITOUS_LANGUAGE.md` - Canonical definitions of schema terms
-- `phase1-schema.sql` - Current schema implementation  
+- `phase1-schema.sql` - Current schema implementation 
 - `sample-data.sql` - Test data reflecting real usage patterns
 - `../examples/DDD_arch.md` - Architectural decision record

@@ -2,7 +2,7 @@
 
 > **Status:** Draft
 > **Date:** 2026-02-19
-> **Related Issue:** [semops-core#142](https://github.com/semops-ai/semops-core/issues/142)
+> **Related Issue:** [](https://github.com/semops-ai/semops-core/issues/142)
 > **Supersedes:** ADR-0004 § "Pattern as sole aggregate root" framing
 > **Related:** ADR-0009 (three-layer architecture), #141 (bounded context alignment)
 
@@ -90,14 +90,14 @@ Pattern and Coherence Assessment are the two core aggregates of the Semantic Ope
 
 ```
 ┌─────────────────────────────────────────────────┐
-│           Semantic Optimization Loop             │
-│                                                  │
-│   Pattern ──produces──→ Capability               │
-│      ↑                      ↓                    │
-│      └──── Coherence ←──audits──┘                │
-│            (informs)                             │
-│                                                  │
-│   Pattern pushes. Coherence aligns.              │
+│ Semantic Optimization Loop │
+│ │
+│ Pattern ──produces──→ Capability │
+│ ↑ ↓ │
+│ └──── Coherence ←──audits──┘ │
+│ (informs) │
+│ │
+│ Pattern pushes. Coherence aligns. │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -153,15 +153,15 @@ The flexible edge — orphan entities, unattributed scripts, experimental infras
 Coherence audits the gap between what exists and what's formalized:
 
 ```
-Stable Core                    Flexible Edge
-(aggregate root invariants)    (anything goes)
-                                    │
-Pattern ─── enforces ──→ SKOS,      │  scripts, experiments,
-            provenance,  links      │  orphan entities, infra
-                                    │
-                              Coherence audits
-                              the gap between
-                              core and edge
+Stable Core Flexible Edge
+(aggregate root invariants) (anything goes)
+ │
+Pattern ─── enforces ──→ SKOS, │ scripts, experiments,
+ provenance, links │ orphan entities, infra
+ │
+ Coherence audits
+ the gap between
+ core and edge
 ```
 
 The flexible edge is the space where you can move fast. Coherence is how you stay honest about the cost of that speed. The aggregate root is why moving fast doesn't break things.
@@ -184,7 +184,7 @@ The existing fitness functions and coverage views are **coherence sensors** — 
 
 | Sensor | What it detects | Current form |
 |--------|----------------|-------------|
-| `check_capability_pattern_coverage()` | Capability without pattern trace | Fitness function (pass/fail) |
+| `check_capability_pattern_coverage` | Capability without pattern trace | Fitness function (pass/fail) |
 | `pattern_coverage` view | Pattern without implementations | SQL view (snapshot) |
 | `capability_coverage` view | Capability without repo delivery | SQL view (snapshot) |
 | `/arch-sync` audit | Script without capability attribution | Workflow (manual) |
@@ -217,12 +217,12 @@ Every break is an audit finding. The fix can go in either direction — a script
 ```
 Coherence Assessment (Aggregate Root)
 ├── Trigger: what change prompted this assessment
-│   (pattern evolution, new capability, implementation change)
+│ (pattern evolution, new capability, implementation change)
 ├── Scope: which patterns/capabilities are being assessed
 ├── Measurements: per-pattern/per-capability alignment signals
-│   ├── Availability (can agents/systems use this?)
-│   ├── Consistency (do patterns conflict?)
-│   └── Stability (how much churn?)
+│ ├── Availability (can agents/systems use this?)
+│ ├── Consistency (do patterns conflict?)
+│ └── Stability (how much churn?)
 ├── SC Score: (A × C × S)^(1/3) — the semantic-coherence formula
 ├── Gaps: identified misalignments (with mode: governance/discovery/regression)
 ├── Actions: recommended changes (add, remove, modify, revert, formalize)
@@ -242,11 +242,11 @@ When `semantic-optimization` becomes operational (an actual experiment/MLOps-sty
 
 ```
 Pattern ──defines──→ "what good looks like" (target)
-    │                        │
-    │                   Coherence ──measures──→ gap from target (loss)
-    │                        │
-    └── Optimization ←──minimizes──┘
-         (uses coherence as objective/guardrail)
+ │ │
+ │ Coherence ──measures──→ gap from target (loss)
+ │ │
+ └── Optimization ←──minimizes──┘
+ (uses coherence as objective/guardrail)
 ```
 
 - **Pattern** sets the target state (prescriptive)

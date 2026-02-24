@@ -1,6 +1,7 @@
 # User Guide: Ingestion Pipeline
 
 > **Version:** 2.1.0 | **Last Updated:** 2026-02-13
+> **Related Issues:** #108 (corpus-aware ingestion), #114 (unified ingestion/retrieval)
 > **See also:** [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for querying the knowledge base
 
 ---
@@ -15,11 +16,11 @@
 | Ingest (with LLM) | `python scripts/ingest_from_source.py --source <name>` |
 | Generate embeddings | `python scripts/generate_embeddings.py` |
 | Materialize graph | `python scripts/materialize_graph.py` |
-| Check entity count | `SELECT count(*) FROM entity;` |
-| Check chunk count | `SELECT count(*) FROM document_chunk;` |
-| Corpus distribution | `SELECT metadata->>'corpus', count(*) FROM entity GROUP BY 1 ORDER BY 2 DESC;` |
+| Check entity count | `docker exec semops-hub-pg psql -U postgres -d postgres -c "SELECT count(*) FROM entity;"` |
+| Check chunk count | `docker exec semops-hub-pg psql -U postgres -d postgres -c "SELECT count(*) FROM document_chunk;"` |
+| Corpus distribution | `docker exec semops-hub-pg psql -U postgres -d postgres -c "SELECT metadata->>'corpus', count(*) FROM entity GROUP BY 1 ORDER BY 2 DESC;"` |
 
-**Note:** All Python commands assume `source .venv/bin/activate` (or use `uv run`) and `OPENAI_API_KEY` is set (loaded from `.env`). SQL queries can be run via your preferred database client.
+**Note:** All Python commands assume `source .venv/bin/activate` (or use `uv run`) and `OPENAI_API_KEY` is set (loaded from `.env`).
 
 ---
 
@@ -28,7 +29,7 @@
 1. **Docker services running** — `python start_services.py --skip-clone`
 2. **Python venv activated** — `source .venv/bin/activate` (or use `uv run`)
 3. **`.env` file** with `OPENAI_API_KEY` and `POSTGRES_PASSWORD`
-4. **Database connection** — Scripts connect automatically via database connection environment variables configured in `.env`. Direct PostgreSQL access is available via the configured database connection.
+4. **Database connection** — Scripts connect automatically via `SEMOPS_DB_*` env vars configured in `.env`. Direct PostgreSQL access is available on port 5434.
 
 ---
 
@@ -48,67 +49,67 @@ Source configurations live in `config/sources/*.yaml`. Each file defines a GitHu
 source_id: github-semops-docs
 
 # Required: surface this source belongs to
-surface_id: github-semops-ai
+surface_id: github-timjmitchell
 
 # Required: human-readable name
 name: "SemOps Documentation (semops-docs)"
 
 # Required: GitHub repository settings
 github:
-  owner: semops-ai              # GitHub org or user
-  repo: semops-docs             # Repository name
-  branch: main                  # Branch to ingest from
-  base_path: docs/SEMOPS_DOCS   # Subdirectory to start from (empty = repo root)
-  include_directories:          # Only ingest from these dirs (relative to base_path)
-    - SEMANTIC_OPERATIONS_FRAMEWORK
-    - RESEARCH
-  exclude_patterns:             # Glob patterns to skip
-    - "**/drafts/**"
-    - "**/_archive/**"
-    - "**/WIP-*"
-  file_extensions:              # File types to include
-    - .md
+ owner: timjmitchell # GitHub org or user
+ repo: semops-docs # Repository name
+ branch: main # Branch to ingest from
+ base_path: docs/SEMOPS_DOCS # Subdirectory to start from (empty = repo root)
+ include_directories: # Only ingest from these dirs (relative to base_path)
+ - SEMANTIC_OPERATIONS_FRAMEWORK
+ - RESEARCH
+ exclude_patterns: # Glob patterns to skip
+ - "**/drafts/**"
+ - "**/_archive/**"
+ - "**/WIP-*"
+ file_extensions: # File types to include
+ - .md
 
 # Optional: defaults applied to all entities from this source
 defaults:
-  asset_type: file              # "file" (you possess it) or "link" (external reference)
-  version: "1.0"                # Semantic version
+ asset_type: file # "file" (you possess it) or "link" (external reference)
+ version: "1.0" # Semantic version
 
 # Optional: attribution template (Dublin Core aligned)
 attribution:
-  $schema: attribution_v2
-  creator:
-    - Tim Mitchell
-  rights: CC-BY-4.0
-  organization: TJMConsulting
-  platform: github
-  channel: semops-ai
-  epistemic_status: synthesis   # synthesis, original, curation, etc.
+ $schema: attribution_v2
+ creator:
+ - Tim Mitchell
+ rights: CC-BY-4.0
+ organization: TJMConsulting
+ platform: github
+ channel: timjmitchell
+ epistemic_status: synthesis # synthesis, original, curation, etc.
 
 # Optional: LLM classification settings
 llm_classify:
-  enabled: true
-  model: claude-opus-4-5-20251101   # Default classification model
-  fields:                            # Fields the LLM should classify
-    - concept_ownership
-    - content_type
-    - primary_concept
-    - broader_concepts
-    - narrower_concepts
-    - subject_area
-    - summary
+ enabled: true
+ model: claude-opus-4-5-20251101 # Default classification model
+ fields: # Fields the LLM should classify
+ - concept_ownership
+ - content_type
+ - primary_concept
+ - broader_concepts
+ - narrower_concepts
+ - subject_area
+ - summary
 
 # Required: corpus routing rules (ADR-0005)
 corpus_routing:
-  rules:
-    - path_pattern: "docs/SEMOPS_DOCS/RESEARCH/**"
-      corpus: research_ai
-      content_type: concept
-    - path_pattern: "docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/**"
-      corpus: core_kb
-      content_type: concept
-  default_corpus: core_kb           # Fallback if no rule matches
-  default_content_type: article     # Fallback content type
+ rules:
+ - path_pattern: "docs/SEMOPS_DOCS/RESEARCH/**"
+ corpus: research_ai
+ content_type: concept
+ - path_pattern: "docs/SEMOPS_DOCS/SEMANTIC_OPERATIONS_FRAMEWORK/**"
+ corpus: core_kb
+ content_type: concept
+ default_corpus: core_kb # Fallback if no rule matches
+ default_content_type: article # Fallback content type
 ```
 
 ### Corpus Routing Rules
@@ -129,17 +130,17 @@ Corpus routing determines which corpus each entity belongs to based on its file 
 ```yaml
 # CORRECT: specific before general
 rules:
-  - path_pattern: "docs/RESEARCH/FOUNDATIONS/**"    # Specific
-    corpus: research_ai
-  - path_pattern: "docs/RESEARCH/**"                # General fallback
-    corpus: research_general
+ - path_pattern: "docs/RESEARCH/FOUNDATIONS/**" # Specific
+ corpus: research_ai
+ - path_pattern: "docs/RESEARCH/**" # General fallback
+ corpus: research_general
 
 # WRONG: general rule shadows specific
 rules:
-  - path_pattern: "docs/RESEARCH/**"                # Catches everything
-    corpus: research_general
-  - path_pattern: "docs/RESEARCH/FOUNDATIONS/**"     # Never reached
-    corpus: research_ai
+ - path_pattern: "docs/RESEARCH/**" # Catches everything
+ corpus: research_general
+ - path_pattern: "docs/RESEARCH/FOUNDATIONS/**" # Never reached
+ corpus: research_ai
 ```
 
 ### Available Corpus Types
@@ -172,48 +173,47 @@ Content types are non-exhaustive — LLM classification may produce additional v
 
 1. **Create the YAML config:**
 
-   ```bash
-   cp config/sources/semops-docs.yaml config/sources/my-new-source.yaml
-   ```
+ ```bash
+ cp config/sources/semops-docs.yaml config/sources/my-new-source.yaml
+ ```
 
 2. **Edit the config:** Update `source_id`, `surface_id`, `name`, `github` settings, and `corpus_routing` rules.
 
 3. **Validate with dry-run:**
 
-   ```bash
-   python scripts/ingest_from_source.py \
-     --source my-new-source --dry-run
-   ```
+ ```bash
+ python scripts/ingest_from_source.py \
+ --source my-new-source --dry-run
+ ```
 
-   Check: all files discovered, corpus assignments correct, no validation errors.
+ Check: all files discovered, corpus assignments correct, no validation errors.
 
 4. **Ingest:**
 
-   ```bash
-   # Without LLM (fast, title + metadata only)
-   python scripts/ingest_from_source.py \
-     --source my-new-source --no-llm
+ ```bash
+ # Without LLM (fast, title + metadata only)
+ python scripts/ingest_from_source.py \
+ --source my-new-source --no-llm
 
-   # With LLM (slower, generates summaries + classification)
-   python scripts/ingest_from_source.py \
-     --source my-new-source
-   ```
+ # With LLM (slower, generates summaries + classification)
+ python scripts/ingest_from_source.py \
+ --source my-new-source
+ ```
 
 5. **Generate embeddings:**
 
-   ```bash
-   python scripts/generate_embeddings.py
-   ```
+ ```bash
+ python scripts/generate_embeddings.py
+ ```
 
-   This only processes entities with NULL embeddings, so it's safe to run after any ingestion.
+ This only processes entities with NULL embeddings, so it's safe to run after any ingestion.
 
 6. **Verify:**
 
-   Run via your preferred database client:
-
-   ```sql
-   SELECT metadata->>'corpus', count(*) FROM entity GROUP BY 1 ORDER BY 2 DESC;
-   ```
+ ```bash
+ docker exec semops-hub-pg psql -U postgres -d postgres -c \
+ "SELECT metadata->>'corpus', count(*) FROM entity GROUP BY 1 ORDER BY 2 DESC;"
+ ```
 
 **Checklist:**
 
@@ -247,10 +247,11 @@ When you modify a source config, the downstream impact depends on what changed:
 python scripts/generate_embeddings.py --regenerate
 ```
 
-**Removing entities:** Re-ingestion does not delete entities that are no longer in the source. To remove stale entities, use SQL directly via your preferred database client:
+**Removing entities:** Re-ingestion does not delete entities that are no longer in the source. To remove stale entities, use SQL directly:
 
-```sql
-DELETE FROM entity WHERE id LIKE 'prefix-%' AND updated_at < '2026-01-31';
+```bash
+docker exec semops-hub-pg psql -U postgres -d postgres -c \
+ "DELETE FROM entity WHERE id LIKE 'prefix-%' AND updated_at < '2026-01-31';"
 ```
 
 ---
@@ -262,15 +263,15 @@ DELETE FROM entity WHERE id LIKE 'prefix-%' AND updated_at < '2026-01-31';
 ```bash
 # Dry run — shows what would be ingested without touching the DB
 python scripts/ingest_from_source.py \
-  --source semops-docs --dry-run
+ --source semops-docs --dry-run
 
 # Ingest without LLM classification (fast, metadata from file only)
 python scripts/ingest_from_source.py \
-  --source semops-docs --no-llm
+ --source semops-docs --no-llm
 
 # Ingest with LLM classification (generates summaries, subject_area, etc.)
 python scripts/ingest_from_source.py \
-  --source semops-docs
+ --source semops-docs
 ```
 
 ### What `--no-llm` Skips
@@ -298,7 +299,7 @@ Without `--no-llm` (LLM enabled), entities additionally get:
 | Source | Config File | Entities | Chunks |
 |--------|------------|----------|--------|
 | `semops-docs` | `config/sources/semops-docs.yaml` | 61 | 1,523 |
-| `semops-dx-orchestrator-domain-patterns` | `config/sources/semops-dx-orchestrator-domain-patterns.yaml` | 24 | 613 |
+| `dx-hub-domain-patterns` | `config/sources/dx-hub-domain-patterns.yaml` | 24 | 613 |
 | `semops-publisher` | `config/sources/semops-publisher.yaml` | 117 | 1,793 |
 
 ---
@@ -314,7 +315,7 @@ python scripts/generate_embeddings.py --regenerate
 
 # Process a specific entity
 python scripts/generate_embeddings.py \
-  --entity-id semantic-compression
+ --entity-id semantic-compression
 
 # Dry run
 python scripts/generate_embeddings.py --dry-run
@@ -327,7 +328,7 @@ python scripts/generate_embeddings.py --dry-run
 **When to regenerate:**
 
 - After ingesting with LLM (new summaries improve embedding quality)
-- After changing how `build_embedding_text()` works in `generate_embeddings.py`
+- After changing how `build_embedding_text` works in `generate_embeddings.py`
 - Not needed after re-ingestion if only corpus/attribution changed (embeddings use title + content metadata)
 
 ---
@@ -369,11 +370,11 @@ The graph contains Entity nodes (from ingested files) and Concept nodes (from de
 
 ### Database Connection
 
-Scripts connect automatically via database connection environment variables configured in `.env`. Direct PostgreSQL access is available via the configured database connection.
+Scripts connect automatically via `SEMOPS_DB_*` env vars configured in `.env`. Direct PostgreSQL access is available on port 5434.
 
 **Error:** `connection refused`
-**Cause:** Docker services not running, or `.env` missing database connection variables.
-**Fix:** Start services with `python start_services.py --skip-clone` and verify `.env` has the database connection settings.
+**Cause:** Docker services not running, or `.env` missing `SEMOPS_DB_*` variables.
+**Fix:** Start services with `python start_services.py --skip-clone` and verify `.env` has the `SEMOPS_DB_*` connection settings.
 
 ### Embedding Generation
 
@@ -388,7 +389,7 @@ export $(grep OPENAI_API_KEY .env)
 
 **Error:** `column "X" of relation "entity" does not exist`
 **Cause:** Database schema doesn't match what the script expects.
-**Fix:** Verify entity table structure by running `\d entity` via your preferred database client.
+**Fix:** Verify entity table structure: `docker exec semops-hub-pg psql -U postgres -d postgres -c "\d entity"`
 
 **All entities show status FAILED:**
 **Cause:** First entity fails, then all subsequent fail with "current transaction is aborted". This is a single-transaction issue.

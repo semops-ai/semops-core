@@ -14,7 +14,7 @@
 | Schema DDL (SQL) | [phase2-schema.sql](phase2-schema.sql) |
 | Schema change history | [SCHEMA_CHANGELOG.md](SCHEMA_CHANGELOG.md) |
 | Schema fitness validation | [fitness-functions.sql](fitness-functions.sql) |
-| W3C standard mappings | [SKOS_PROVO_MAPPING.md](SKOS_PROVO_MAPPING.md) |
+| W3C standard mappings | [SKOS_PROVO_MAPPING.md](../docs/SKOS_PROVO_MAPPING.md) |
 
 ---
 
@@ -31,8 +31,8 @@ The aggregate root of the domain model. See [UBIQUITOUS_LANGUAGE.md — Pattern]
 | `provenance` | `TEXT` | NOT NULL | — | `'1p'`, `'2p'`, `'3p'` |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Flexible fields (pattern_type, subject_area, quality_score) |
 | `embedding` | `vector(1536)` | YES | — | OpenAI `text-embedding-3-small` |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 
 ### Pattern Enums
 
@@ -76,7 +76,7 @@ SKOS semantic relations plus adoption predicates between patterns.
 | `predicate` | `TEXT` | NOT NULL | — | Relationship type (see enum below) |
 | `strength` | `DECIMAL(3,2)` | YES | `1.0` | Importance/confidence 0.0–1.0 |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Additional context |
-| `created_at` | `TIMESTAMPTZ` | YES | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | YES | `now` | |
 
 **Primary key:** `(src_id, dst_id, predicate)`
 
@@ -121,8 +121,8 @@ Unified actor table for CRM/PIM. See [UBIQUITOUS_LANGUAGE.md — Brand](UBIQUITO
 | `external_ids` | `JSONB` | YES | — | External identifiers (linkedin, github, etc.) |
 | `pattern_id` | `TEXT` | YES | — | FK → `pattern.id`. 1P pattern this commercializes. |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Additional metadata |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 
 ### Brand Enums
 
@@ -150,8 +150,8 @@ PIM entity. See [UBIQUITOUS_LANGUAGE.md — Product](UBIQUITOUS_LANGUAGE.md#prod
 | `pattern_id` | `TEXT` | YES | — | FK → `pattern.id`. 1P pattern this packages. |
 | `pricing` | `JSONB` | NOT NULL | `'{}'` | Pricing info (price, currency, unit, availability) |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Additional metadata |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 
 ---
 
@@ -166,7 +166,7 @@ CRM-style connections between actors and products.
 | `dst_id` | `TEXT` | NOT NULL | — | Destination ID |
 | `predicate` | `TEXT` | NOT NULL | — | Relationship type (flexible, not enumerated) |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Context (source, met_at, etc.) |
-| `created_at` | `TIMESTAMPTZ` | YES | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | YES | `now` | |
 
 **Primary key:** `(src_id, dst_type, dst_id, predicate)`
 
@@ -201,8 +201,8 @@ Unified entity table with type discriminator (ADR-0009). See [UBIQUITOUS_LANGUAG
 | `attribution` | `JSONB` | NOT NULL | `'{}'` | `attribution_v2` — Dublin Core aligned creator/rights |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Per-type metadata (see schemas below) |
 | `embedding` | `vector(1536)` | YES | — | OpenAI `text-embedding-3-small` |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 
 ### Entity Type Field Usage
 
@@ -249,7 +249,7 @@ Typed directional relationships between entities, patterns, and surfaces. See [U
 | `predicate` | `TEXT` | NOT NULL | — | Relationship type (see enum below) |
 | `strength` | `DECIMAL(3,2)` | YES | `1.0` | Importance/confidence 0.0–1.0 |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Additional context |
-| `created_at` | `TIMESTAMPTZ` | YES | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | YES | `now` | |
 
 **Primary key:** `(src_type, src_id, dst_type, dst_id, predicate)`
 
@@ -308,8 +308,8 @@ Publication destinations and ingestion sources.
 | `direction` | `TEXT` | NOT NULL | — | `'publish'`, `'ingest'`, `'bidirectional'` |
 | `constraints` | `JSONB` | NOT NULL | `'{}'` | Platform limits (max_size, formats, rate_limits) |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Platform-specific data (site_url, api_endpoint) |
-| `created_at` | `TIMESTAMPTZ` | YES | `now()` | |
-| `updated_at` | `TIMESTAMPTZ` | YES | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | YES | `now` | |
+| `updated_at` | `TIMESTAMPTZ` | YES | `now` | |
 
 ### Surface Enums
 
@@ -344,8 +344,8 @@ Publication lifecycle records linking entities to surfaces.
 | `failed_at` | `TIMESTAMPTZ` | YES | — | When failed |
 | `error_message` | `TEXT` | YES | — | Error details |
 | `metadata` | `JSONB` | NOT NULL | `'{}'` | Delivery-specific data |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 
 ### Delivery Enums
 
@@ -384,10 +384,10 @@ Publication lifecycle records linking entities to surfaces.
 **Status transitions:**
 ```
 planned → queued → published
-               ↓
-             failed
-               ↓
-             queued (retry)
+ ↓
+ failed
+ ↓
+ queued (retry)
 
 published → removed
 ```
@@ -407,7 +407,7 @@ Bounded execution of an ingestion pipeline.
 | `status` | `TEXT` | NOT NULL | `'running'` | `'running'`, `'completed'`, `'failed'`, `'cancelled'` |
 | `source_config` | `JSONB` | NOT NULL | `'{}'` | Snapshot of config used |
 | `metrics` | `JSONB` | NOT NULL | `'{}'` | Run-level aggregated metrics |
-| `started_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `started_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 | `completed_at` | `TIMESTAMPTZ` | YES | — | |
 
 ---
@@ -429,7 +429,7 @@ Single agent operation tracked for provenance.
 | `agent_name` | `TEXT` | YES | — | Agent that performed the operation |
 | `model_name` | `TEXT` | YES | — | LLM or embedding model used |
 | `detected_edges` | `JSONB` | YES | — | Model-proposed relationships |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now()` | |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL | `now` | |
 
 ### Episode Operation Types
 
@@ -664,8 +664,8 @@ Repo-to-repo integration relationships with DDD pattern typing.
 - [phase2-schema.sql](phase2-schema.sql) — Canonical DDL
 - [fitness-functions.sql](fitness-functions.sql) — Schema validation rules
 - [SCHEMA_CHANGELOG.md](SCHEMA_CHANGELOG.md) — Change history
-- ADR-0004: Pattern as Aggregate Root
-- ADR-0009: Three-Layer Architecture
+- [ADR-0004: Pattern as Aggregate Root](../docs/decisions/ADR-0004-schema-phase2-pattern-aggregate-root.md)
+- [ADR-0009: Three-Layer Architecture](../docs/decisions/ADR-0009-strategic-tactical-ddd-refactor.md)
 
 ---
 
